@@ -1,0 +1,37 @@
+const express = require('express');
+const router = express.Router();
+const adminController = require('../controllers/adminController');
+const staffController = require('../controllers/staffController');
+const attendanceController = require('../controllers/attendanceController');
+const contractController = require('../controllers/contractController');
+const serviceController = require('../controllers/serviceController');
+const reportController = require('../controllers/reportController');
+const { isAuthenticated } = require('../middleware/auth');
+const checkRole = require('../middleware/roleCheck');
+
+router.use(isAuthenticated);
+router.use(checkRole('admin'));
+
+router.get('/dashboard', adminController.showDashboard);
+
+router.get('/staff', staffController.showStaff);
+router.post('/staff', staffController.createStaff);
+router.put('/staff/:id', staffController.updateStaff);
+router.delete('/staff/:id', staffController.deleteStaff);
+
+router.get('/attendance', attendanceController.showAttendance);
+router.post('/attendance', attendanceController.recordAttendance);
+
+router.get('/contracts', contractController.showContracts);
+router.post('/contracts', contractController.createContract);
+router.put('/contracts/:id', contractController.updateContract);
+router.delete('/contracts/:id', contractController.deleteContract);
+router.get('/contracts/:id/print', reportController.printContractAgreement);
+
+router.get('/services', serviceController.showServices);
+router.post('/services', serviceController.createService);
+router.put('/services/:id', serviceController.updateService);
+router.delete('/services/:id', serviceController.deleteService);
+
+module.exports = router;
+

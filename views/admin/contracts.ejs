@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <div class="main-content">
+      <div class="content-header">
+        <h1>Contract Management</h1>
+        <button class="btn btn-primary" onclick="toggleModal('createContractModal')">Create New Contract</button>
+      </div>
+      
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (success) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
+      
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Client Name</th>
+              <th>Phone</th>
+              <th>Service Type</th>
+              <th>Start Date</th>
+              <th>Status</th>
+              <th>Fee</th>
+              <th>Payment</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% contracts.forEach(contract => { %>
+              <tr>
+                <td><%= contract.clientName %></td>
+                <td><%= contract.clientPhone %></td>
+                <td><%= contract.serviceType %></td>
+                <td><%= new Date(contract.startDate).toLocaleDateString() %></td>
+                <td><span class="badge badge-<%= contract.status %>"><%= contract.status %></span></td>
+                <td>D <%= contract.totalFee %></td>
+                <td><span class="badge badge-<%= contract.paymentStatus %>"><%= contract.paymentStatus %></span></td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="updateContract('<%= contract._id %>', '<%= contract.status %>', '<%= contract.paymentStatus %>')">Update</button>
+                  <a href="/admin/contracts/<%= contract._id %>/print" class="btn btn-sm btn-info" target="_blank">Print</a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div id="createContractModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2>Create New Contract</h2>
+        <span class="close" onclick="toggleModal('createContractModal')">&times;</span>
+      </div>
+      <form action="/admin/contracts" method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="clientName">Client Name</label>
+            <input type="text" id="clientName" name="clientName" required>
+          </div>
+          <div class="form-group">
+            <label for="clientPhone">Client Phone</label>
+            <input type="tel" id="clientPhone" name="clientPhone" required>
+          </div>
+          <div class="form-group">
+            <label for="clientAddress">Client Address</label>
+            <input type="text" id="clientAddress" name="clientAddress" required>
+          </div>
+          <div class="form-group">
+            <label for="serviceType">Service Type</label>
+            <select id="serviceType" name="serviceType" required>
+              <option value="Electrical Installation">Electrical Installation</option>
+              <option value="Water Pump Installation">Water Pump Installation</option>
+              <option value="Borehole Drilling">Borehole Drilling</option>
+              <option value="Water Tank Installation">Water Tank Installation</option>
+              <option value="Home Services">Home Services</option>
+              <option value="Office Installation">Office Installation</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="startDate">Start Date</label>
+            <input type="date" id="startDate" name="startDate" required>
+          </div>
+          <div class="form-group">
+            <label for="endDate">End Date</label>
+            <input type="date" id="endDate" name="endDate">
+          </div>
+          <div class="form-group">
+            <label for="totalFee">Total Fee (Dalasi)</label>
+            <input type="number" id="totalFee" name="totalFee" required min="0">
+          </div>
+          <div class="form-group">
+            <label for="assignedStaff">Assign Staff</label>
+            <select id="assignedStaff" name="assignedStaff" multiple>
+              <% staff.forEach(member => { %>
+                <option value="<%= member._id %>"><%= member.name %> (<%= member.specialization %>)</option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="3" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="toggleModal('createContractModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Contract</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div id="updateContractModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Update Contract</h2>
+        <span class="close" onclick="toggleModal('updateContractModal')">&times;</span>
+      </div>
+      <form id="updateContractForm" method="POST">
+        <input type="hidden" name="_method" value="PUT">
+        <div class="form-group">
+          <label for="update_status">Status</label>
+          <select id="update_status" name="status" required>
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="update_paymentStatus">Payment Status</label>
+          <select id="update_paymentStatus" name="paymentStatus" required>
+            <option value="unpaid">Unpaid</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="toggleModal('updateContractModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="/js/main.js"></script>
+  <script>
+    function updateContract(id, status, paymentStatus) {
+      document.getElementById('updateContractForm').action = '/admin/contracts/' + id;
+      document.getElementById('update_status').value = status;
+      document.getElementById('update_paymentStatus').value = paymentStatus;
+      toggleModal('updateContractModal');
+    }
+  </script>
+</body>
+</html>
+

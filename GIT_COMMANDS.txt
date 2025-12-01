@@ -1,0 +1,130 @@
+================================================================================
+CORRECT GIT COMMANDS FOR DEPLOYMENT
+================================================================================
+
+IMPORTANT: Replace YOUR-USERNAME with your actual GitHub username!
+
+================================================================================
+STEP 1: CHECK GIT STATUS
+================================================================================
+
+git status
+
+This shows what files are ready to commit.
+
+================================================================================
+STEP 2: ADD ALL FILES
+================================================================================
+
+git add .
+
+This stages all files for commit.
+
+================================================================================
+STEP 3: COMMIT FILES
+================================================================================
+
+git commit -m "Initial commit - Trawally Management System"
+
+This saves your changes with a message.
+
+================================================================================
+STEP 4: ADD REMOTE (REPLACE YOUR-USERNAME!)
+================================================================================
+
+git remote add origin https://github.com/YOUR-USERNAME/trawally-management-system.git
+
+EXAMPLE:
+If your GitHub username is "johndoe", the command would be:
+git remote add origin https://github.com/johndoe/trawally-management-system.git
+
+================================================================================
+STEP 5: RENAME BRANCH TO MAIN
+================================================================================
+
+git branch -M main
+
+This renames your branch to "main".
+
+================================================================================
+STEP 6: PUSH TO GITHUB
+================================================================================
+
+git push -u origin main
+
+This uploads your code to GitHub.
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Error: "key does not contain a section"
+Solution: Make sure you're using the CORRECT GitHub repository URL format:
+          https://github.com/YOUR-USERNAME/repository-name.git
+          
+          DO NOT use MongoDB connection strings or other URLs!
+
+Error: "remote origin already exists"
+Solution: Remove the existing remote first:
+          git remote remove origin
+          Then add it again with the correct URL.
+
+Error: "repository not found"
+Solution: Make sure:
+          1. You created the repository on GitHub
+          2. Your username is spelled correctly
+          3. The repository name matches exactly
+
+================================================================================
+BEFORE YOU START
+================================================================================
+
+1. Create repository on GitHub:
+   - Go to https://github.com
+   - Click "+" icon → "New repository"
+   - Name: trawally-management-system
+   - Visibility: Private (recommended)
+   - DON'T check any boxes
+   - Click "Create repository"
+
+2. Copy the repository URL from GitHub
+   It will look like: https://github.com/YOUR-USERNAME/trawally-management-system.git
+
+3. Use that exact URL in the git remote add command
+
+================================================================================
+COMPLETE SEQUENCE
+================================================================================
+
+# 1. Check status
+git status
+
+# 2. Add files
+git add .
+
+# 3. Commit
+git commit -m "Initial commit - Trawally Management System"
+
+# 4. Add remote (use YOUR GitHub URL!)
+git remote add origin https://github.com/YOUR-USERNAME/trawally-management-system.git
+
+# 5. Rename branch
+git branch -M main
+
+# 6. Push
+git push -u origin main
+
+================================================================================
+VERIFY YOUR REMOTE
+================================================================================
+
+After adding the remote, verify it:
+
+git remote -v
+
+You should see:
+origin  https://github.com/YOUR-USERNAME/trawally-management-system.git (fetch)
+origin  https://github.com/YOUR-USERNAME/trawally-management-system.git (push)
+
+================================================================================
+

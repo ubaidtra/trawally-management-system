@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1>Professional Electrical & Plumbing Services</h1>
+          <p>Expert solutions for all your electrical and plumbing needs</p>
+          <div class="hero-buttons">
+            <a href="/contact" class="btn btn-primary">Get Started</a>
+            <a href="/about" class="btn btn-secondary">Learn More</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="services">
+      <div class="container">
+        <h2 class="section-title">Our Services</h2>
+        <div class="services-grid">
+          <div class="service-card">
+            <div class="service-icon electrical">⚡</div>
+            <h3>Electrical Installation</h3>
+            <p>Complete electrical installation services for homes and offices</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon plumbing">💧</div>
+            <h3>Water Pump Installation</h3>
+            <p>Professional water pump installation and maintenance</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon drilling">🔧</div>
+            <h3>Borehole Drilling</h3>
+            <p>Expert borehole drilling services</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon tank">🚰</div>
+            <h3>Water Tank Installation</h3>
+            <p>Quality water tank installation and setup</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon home">🏠</div>
+            <h3>Home Services</h3>
+            <p>Comprehensive home electrical and plumbing services</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon office">🏢</div>
+            <h3>Office Installation</h3>
+            <p>Professional office electrical and plumbing installations</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="container">
+        <h2>Ready to Get Started?</h2>
+        <p>Contact us today for professional electrical and plumbing services</p>
+        <a href="/contact" class="btn btn-primary">Contact Us</a>
+      </div>
+    </section>
+  </main>
+
+  <%- include('../partials/footer') %>
+  <script src="/js/main.js"></script>
+</body>
+</html>
+

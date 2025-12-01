@@ -1,0 +1,183 @@
+================================================================================
+TRAWALLY ELECTRICS & PLUMBING MANAGEMENT SYSTEM
+Installation Instructions
+================================================================================
+
+QUICK INSTALLATION (5 Steps)
+================================================================================
+
+STEP 1: Install Node.js
+------------------------------------
+- Download and install Node.js from: https://nodejs.org
+- Verify installation:
+  * Open terminal/command prompt
+  * Run: node --version
+  * Run: npm --version
+
+NOTE: MongoDB is NOT needed locally - using cloud database (MongoDB Atlas)
+
+STEP 2: Install Project Dependencies
+------------------------------------
+- Open terminal in project folder
+- Run: npm install
+- Wait for all packages to install (this may take 2-3 minutes)
+
+STEP 3: Create Super Admin Account
+------------------------------------
+- In your project terminal, run: node scripts/createSuperAdmin.js
+- Enter the following when prompted:
+  * Username: admin
+  * Email: admin@trawally.com
+  * Password: admin123 (you can change this later)
+
+STEP 4: Start the Application
+------------------------------------
+- Run: npm start
+- Open your web browser
+- Go to: http://localhost:4000
+- Click "Login" and use your super admin credentials
+
+CONGRATULATIONS! The system is now running.
+
+================================================================================
+FIRST TIME SETUP
+================================================================================
+
+After logging in as Super Admin:
+
+1. Go to "Manage Users"
+2. Create a CEO account:
+   - Username: ceo
+   - Email: ceo@trawally.com
+   - Password: ceo123
+   - Role: CEO
+
+3. Create an Admin account:
+   - Username: admin1
+   - Email: admin1@trawally.com
+   - Password: admin123
+   - Role: Admin
+
+4. Logout and test each account
+
+================================================================================
+SYSTEM URLS
+================================================================================
+
+Home Page:           http://localhost:4000
+Login Page:          http://localhost:4000/auth/login
+Super Admin:         http://localhost:4000/superadmin/dashboard
+CEO Dashboard:       http://localhost:4000/ceo/dashboard
+Admin Dashboard:     http://localhost:4000/admin/dashboard
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: "Cannot connect to MongoDB"
+Solution: Check your internet connection. The system uses MongoDB Atlas cloud database.
+
+Problem: "Port 4000 already in use"
+Solution: Either:
+  - Stop the application using port 4000
+  - Or change PORT in .env file to another port (e.g., 4001 or 5000)
+
+Problem: "npm install fails"
+Solution: 
+  - Delete node_modules folder
+  - Delete package-lock.json file
+  - Run: npm install again
+
+Problem: "Cannot login"
+Solution:
+  - Make sure you created super admin account
+  - Check MongoDB is running
+  - Clear browser cookies
+  - Try again
+
+Problem: "Puppeteer installation error"
+Solution: Run: npm install puppeteer --ignore-scripts
+
+================================================================================
+DAILY USAGE
+================================================================================
+
+Starting the System:
+1. Open terminal in project folder
+2. Run: npm start
+3. Open browser to http://localhost:4000
+
+Stopping the System:
+1. Press Ctrl+C in the terminal running npm start
+
+================================================================================
+SYSTEM REQUIREMENTS
+================================================================================
+
+Minimum:
+- Windows 7/Mac OS X 10.10/Linux
+- 2GB RAM
+- 10GB free disk space
+- Node.js 14 or higher
+- MongoDB 4.4 or higher
+
+Recommended:
+- Windows 10/Mac OS X 11/Linux
+- 4GB RAM
+- 20GB free disk space
+- Node.js 18 or higher
+- MongoDB 6.0 or higher
+
+================================================================================
+SUPPORT CONTACTS
+================================================================================
+
+Phone: +2203980627
+Phone: +2207980698
+
+================================================================================
+DOCUMENTATION FILES
+================================================================================
+
+README.md         - Project overview and features
+QUICKSTART.md     - 5-minute quick start guide
+SETUP_GUIDE.md    - Detailed setup instructions
+FEATURES.md       - Complete feature documentation
+PROJECT_SUMMARY.md - Technical project summary
+
+================================================================================
+DEFAULT CREDENTIALS (After Setup)
+================================================================================
+
+Super Admin:
+  Username: admin
+  Password: admin123
+
+CEO (you create this):
+  Username: ceo
+  Password: ceo123
+
+Admin (you create this):
+  Username: admin1
+  Password: admin123
+
+IMPORTANT: Change all passwords after first login!
+
+================================================================================
+BACKUP YOUR DATA
+================================================================================
+
+To backup your database:
+  mongodump --db trawally-management --out ./backup
+
+To restore your database:
+  mongorestore --db trawally-management ./backup/trawally-management
+
+================================================================================
+
+Thank you for using Trawally Management System!
+
+For more help, see the documentation files or contact support.
+
+================================================================================
+

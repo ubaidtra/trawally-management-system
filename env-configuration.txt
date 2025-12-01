@@ -1,0 +1,21 @@
+================================================================================
+ENVIRONMENT CONFIGURATION
+================================================================================
+
+Create a file named ".env" in the root directory with this content:
+
+MONGODB_URI=mongodb+srv://ubaidttech_db_user:tra@tech.281986@cluster0.lxszwnk.mongodb.net/trawally-management?retryWrites=true&w=majority&appName=Cluster0
+SESSION_SECRET=trawally-secret-key-change-in-production
+PORT=4000
+NODE_ENV=development
+
+================================================================================
+
+IMPORTANT NOTES:
+- The file must be named exactly ".env" (with the dot at the beginning)
+- Place it in the root directory of the project
+- Do not add any extra spaces or quotes
+- The MongoDB connection string uses your Atlas cloud database
+- Application will run on port 4000
+
+================================================================================

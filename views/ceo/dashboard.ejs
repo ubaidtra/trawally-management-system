@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <div class="main-content">
+      <div class="content-header">
+        <h1>CEO Dashboard</h1>
+        <a href="/ceo/reports" class="btn btn-primary">View Reports</a>
+      </div>
+      
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (success) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Staff</h3>
+          <p class="stat-number"><%= totalStaff %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Active Contracts</h3>
+          <p class="stat-number"><%= activeContracts %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Pending Payments</h3>
+          <p class="stat-number"><%= pendingPayments %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Monthly Revenue</h3>
+          <p class="stat-number">D <%= monthlyRevenue.toLocaleString() %></p>
+        </div>
+      </div>
+      
+      <div class="dashboard-grid">
+        <div class="dashboard-section">
+          <h2>Contract Status Overview</h2>
+          <canvas id="contractStatusChart"></canvas>
+        </div>
+        
+        <div class="dashboard-section">
+          <h2>Revenue by Service Type</h2>
+          <canvas id="revenueChart"></canvas>
+        </div>
+      </div>
+      
+      <div class="dashboard-section">
+        <h2>Contract Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Completed</h3>
+            <p class="stat-number"><%= completedContracts %></p>
+          </div>
+          <div class="stat-card">
+            <h3>In Progress</h3>
+            <p class="stat-number"><%= inProgressContracts %></p>
+          </div>
+          <div class="stat-card">
+            <h3>Pending</h3>
+            <p class="stat-number"><%= pendingContracts %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/js/main.js"></script>
+  <script>
+    const contractStatusCtx = document.getElementById('contractStatusChart').getContext('2d');
+    new Chart(contractStatusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Completed', 'In Progress', 'Pending'],
+        datasets: [{
+          data: [<%= completedContracts %>, <%= inProgressContracts %>, <%= pendingContracts %>],
+          backgroundColor: ['#10b981', '#f59e0b', '#6366f1']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true
+      }
+    });
+    
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+      type: 'bar',
+      data: {
+        labels: [
+          <% contractsByType.forEach(type => { %>
+            '<%= type._id %>',
+          <% }) %>
+          <% servicesByType.forEach(type => { %>
+            '<%= type._id %> (Service)',
+          <% }) %>
+        ],
+        datasets: [{
+          label: 'Revenue (Dalasi)',
+          data: [
+            <% contractsByType.forEach(type => { %>
+              <%= type.revenue %>,
+            <% }) %>
+            <% servicesByType.forEach(type => { %>
+              <%= type.revenue %>,
+            <% }) %>
+          ],
+          backgroundColor: '#1e40af'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+

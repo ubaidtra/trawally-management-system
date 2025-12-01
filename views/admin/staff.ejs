@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <div class="main-content">
+      <div class="content-header">
+        <h1>Staff Management</h1>
+        <button class="btn btn-primary" onclick="toggleModal('createStaffModal')">Add New Staff</button>
+      </div>
+      
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (success) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
+      
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Specialization</th>
+              <th>Status</th>
+              <th>Date Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% staff.forEach(member => { %>
+              <tr>
+                <td><%= member.name %></td>
+                <td><%= member.phone %></td>
+                <td><%= member.email || 'N/A' %></td>
+                <td><span class="badge badge-<%= member.specialization %>"><%= member.specialization %></span></td>
+                <td><span class="badge badge-<%= member.status %>"><%= member.status %></span></td>
+                <td><%= new Date(member.dateJoined).toLocaleDateString() %></td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="editStaff('<%= member._id %>', '<%= member.name %>', '<%= member.phone %>', '<%= member.email %>', '<%= member.specialization %>', '<%= member.status %>')">Edit</button>
+                  <form action="/admin/staff/<%= member._id %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure?')">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div id="createStaffModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add New Staff</h2>
+        <span class="close" onclick="toggleModal('createStaffModal')">&times;</span>
+      </div>
+      <form action="/admin/staff" method="POST">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email">
+        </div>
+        <div class="form-group">
+          <label for="specialization">Specialization</label>
+          <select id="specialization" name="specialization" required>
+            <option value="electrical">Electrical</option>
+            <option value="plumbing">Plumbing</option>
+            <option value="both">Both</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="toggleModal('createStaffModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Staff</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div id="editStaffModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit Staff</h2>
+        <span class="close" onclick="toggleModal('editStaffModal')">&times;</span>
+      </div>
+      <form id="editStaffForm" method="POST">
+        <input type="hidden" name="_method" value="PUT">
+        <div class="form-group">
+          <label for="edit_name">Full Name</label>
+          <input type="text" id="edit_name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_phone">Phone Number</label>
+          <input type="tel" id="edit_phone" name="phone" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_email">Email</label>
+          <input type="email" id="edit_email" name="email">
+        </div>
+        <div class="form-group">
+          <label for="edit_specialization">Specialization</label>
+          <select id="edit_specialization" name="specialization" required>
+            <option value="electrical">Electrical</option>
+            <option value="plumbing">Plumbing</option>
+            <option value="both">Both</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit_status">Status</label>
+          <select id="edit_status" name="status" required>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="toggleModal('editStaffModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Staff</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="/js/main.js"></script>
+  <script>
+    function editStaff(id, name, phone, email, specialization, status) {
+      document.getElementById('editStaffForm').action = '/admin/staff/' + id;
+      document.getElementById('edit_name').value = name;
+      document.getElementById('edit_phone').value = phone;
+      document.getElementById('edit_email').value = email;
+      document.getElementById('edit_specialization').value = specialization;
+      document.getElementById('edit_status').value = status;
+      toggleModal('editStaffModal');
+    }
+  </script>
+</body>
+</html>
+

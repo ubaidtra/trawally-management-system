@@ -1,0 +1,59 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h3><%= user.role.toUpperCase() %></h3>
+    <p><%= user.username %></p>
+  </div>
+  <nav class="sidebar-nav">
+    <ul>
+      <li>
+        <a href="/<%= user.role %>/dashboard" class="<%= currentPage === 'dashboard' ? 'active' : '' %>">
+          Dashboard
+        </a>
+      </li>
+      
+      <% if (user.role === 'superadmin') { %>
+        <li>
+          <a href="/superadmin/users" class="<%= currentPage === 'users' ? 'active' : '' %>">
+            Manage Users
+          </a>
+        </li>
+      <% } %>
+      
+      <% if (user.role === 'admin') { %>
+        <li>
+          <a href="/admin/staff" class="<%= currentPage === 'staff' ? 'active' : '' %>">
+            Staff Management
+          </a>
+        </li>
+        <li>
+          <a href="/admin/attendance" class="<%= currentPage === 'attendance' ? 'active' : '' %>">
+            Attendance
+          </a>
+        </li>
+        <li>
+          <a href="/admin/contracts" class="<%= currentPage === 'contracts' ? 'active' : '' %>">
+            Contracts
+          </a>
+        </li>
+        <li>
+          <a href="/admin/services" class="<%= currentPage === 'services' ? 'active' : '' %>">
+            Services
+          </a>
+        </li>
+      <% } %>
+      
+      <% if (user.role === 'ceo') { %>
+        <li>
+          <a href="/ceo/reports" class="<%= currentPage === 'reports' ? 'active' : '' %>">
+            Reports
+          </a>
+        </li>
+      <% } %>
+      
+      <li>
+        <a href="/auth/logout">Logout</a>
+      </li>
+    </ul>
+  </nav>
+</aside>
+

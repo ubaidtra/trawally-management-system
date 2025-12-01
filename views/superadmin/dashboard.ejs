@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <div class="main-content">
+      <div class="content-header">
+        <h1>Super Admin Dashboard</h1>
+      </div>
+      
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (success) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Users</h3>
+          <p class="stat-number"><%= totalUsers %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Staff</h3>
+          <p class="stat-number"><%= totalStaff %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Contracts</h3>
+          <p class="stat-number"><%= totalContracts %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Services</h3>
+          <p class="stat-number"><%= totalServices %></p>
+        </div>
+      </div>
+      
+      <div class="dashboard-actions">
+        <a href="/superadmin/users" class="btn btn-primary">Manage Users</a>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/js/main.js"></script>
+</body>
+</html>
+

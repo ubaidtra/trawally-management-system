@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <div class="main-content">
+      <div class="content-header">
+        <h1>Reports</h1>
+        <button class="btn btn-primary" onclick="window.print()">Print Report</button>
+      </div>
+      
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <div class="report-filters">
+        <form action="/ceo/reports" method="GET">
+          <div class="form-group">
+            <label for="reportType">Report Type</label>
+            <select id="reportType" name="reportType" onchange="this.form.submit()">
+              <option value="attendance" <%= reportType === 'attendance' ? 'selected' : '' %>>Attendance Report</option>
+              <option value="financial" <%= reportType === 'financial' ? 'selected' : '' %>>Financial Report</option>
+              <option value="deployment" <%= reportType === 'deployment' ? 'selected' : '' %>>Staff Deployment Report</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="startDate">Start Date</label>
+            <input type="date" id="startDate" name="startDate" value="<%= startDate %>">
+          </div>
+          <div class="form-group">
+            <label for="endDate">End Date</label>
+            <input type="date" id="endDate" name="endDate" value="<%= endDate %>">
+          </div>
+          <button type="submit" class="btn btn-secondary">Filter</button>
+        </form>
+      </div>
+      
+      <div class="report-content">
+        <% if (reportType === 'attendance' && reportData.attendance) { %>
+          <h2>Attendance Report</h2>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Staff Name</th>
+                  <th>Specialization</th>
+                  <th>Status</th>
+                  <th>Time In</th>
+                  <th>Time Out</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% reportData.attendance.forEach(att => { %>
+                  <tr>
+                    <td><%= new Date(att.date).toLocaleDateString() %></td>
+                    <td><%= att.staff.name %></td>
+                    <td><%= att.staff.specialization %></td>
+                    <td><span class="badge badge-<%= att.status %>"><%= att.status %></span></td>
+                    <td><%= att.timeIn || 'N/A' %></td>
+                    <td><%= att.timeOut || 'N/A' %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+        
+        <% if (reportType === 'financial' && reportData.financial) { %>
+          <h2>Financial Report</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h3>Total Revenue (Paid)</h3>
+              <p class="stat-number">D <%= reportData.financial.totalRevenue.toLocaleString() %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Pending Revenue</h3>
+              <p class="stat-number">D <%= reportData.financial.pendingRevenue.toLocaleString() %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Total Contracts</h3>
+              <p class="stat-number"><%= reportData.financial.contracts.length %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Total Services</h3>
+              <p class="stat-number"><%= reportData.financial.services.length %></p>
+            </div>
+          </div>
+          
+          <h3>Contracts</h3>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Service Type</th>
+                  <th>Fee</th>
+                  <th>Payment Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% reportData.financial.contracts.forEach(contract => { %>
+                  <tr>
+                    <td><%= contract.clientName %></td>
+                    <td><%= contract.serviceType %></td>
+                    <td>D <%= contract.totalFee %></td>
+                    <td><span class="badge badge-<%= contract.paymentStatus %>"><%= contract.paymentStatus %></span></td>
+                    <td><%= new Date(contract.createdAt).toLocaleDateString() %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+        
+        <% if (reportType === 'deployment' && reportData.deployment) { %>
+          <h2>Staff Deployment Report</h2>
+          
+          <h3>Contract Assignments</h3>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Service Type</th>
+                  <th>Assigned Staff</th>
+                  <th>Status</th>
+                  <th>Start Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% reportData.deployment.contracts.forEach(contract => { %>
+                  <tr>
+                    <td><%= contract.clientName %></td>
+                    <td><%= contract.serviceType %></td>
+                    <td>
+                      <% contract.assignedStaff.forEach(staff => { %>
+                        <%= staff.name %> (<%= staff.specialization %>)<br>
+                      <% }) %>
+                    </td>
+                    <td><span class="badge badge-<%= contract.status %>"><%= contract.status %></span></td>
+                    <td><%= new Date(contract.startDate).toLocaleDateString() %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+          
+          <h3>Service Assignments</h3>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Service Type</th>
+                  <th>Assigned Staff</th>
+                  <th>Status</th>
+                  <th>Service Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% reportData.deployment.services.forEach(service => { %>
+                  <tr>
+                    <td><%= service.clientName %></td>
+                    <td><%= service.serviceType %></td>
+                    <td>
+                      <% service.assignedStaff.forEach(staff => { %>
+                        <%= staff.name %> (<%= staff.specialization %>)<br>
+                      <% }) %>
+                    </td>
+                    <td><span class="badge badge-<%= service.status %>"><%= service.status %></span></td>
+                    <td><%= new Date(service.serviceDate).toLocaleDateString() %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/js/main.js"></script>
+</body>
+</html>
+
