@@ -31,7 +31,7 @@ The system is configured to use **MongoDB Atlas** - a cloud-hosted MongoDB datab
 
 The `.env` file contains:
 ```
-MONGODB_URI=mongodb+srv://ubaidttech_db_user:tra@tech.281986@cluster0.lxszwnk.mongodb.net/trawally-management?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=mongodb+srv://ubaidttech_db_user:tra%40tech.281986@cluster0.lxszwnk.mongodb.net/trawally-management?retryWrites=true&w=majority&appName=Cluster0
 ```
 
 When you run `npm start`, the application automatically connects to your MongoDB Atlas cluster.
