@@ -1,0 +1,112 @@
+================================================================================
+HOW TO PUSH TO GITHUB - STEP BY STEP
+================================================================================
+
+OPTION 1: USE PERSONAL ACCESS TOKEN (RECOMMENDED)
+================================================================================
+
+Step 1: Create Personal Access Token
+------------------------------------
+1. Go to: https://github.com/settings/tokens
+2. Click "Generate new token" → "Generate new token (classic)"
+3. Name: Trawally Deployment
+4. Expiration: Choose "No expiration" or "90 days"
+5. Check the box: ✅ repo (full control of repositories)
+6. Click "Generate token" at the bottom
+7. COPY THE TOKEN (looks like: ghp_xxxxxxxxxxxxxxxxxxxx)
+   IMPORTANT: Save it somewhere safe! You won't see it again!
+
+Step 2: Push Using Token
+-------------------------
+In PowerShell, run:
+
+git push -u origin main
+
+When it asks:
+- Username: ubaidtra
+- Password: PASTE YOUR TOKEN HERE (not your GitHub password!)
+
+Press Enter and it will push!
+
+================================================================================
+OPTION 2: USE GITHUB CLI (EASIER)
+================================================================================
+
+Step 1: Install GitHub CLI
+---------------------------
+Download from: https://cli.github.com
+Or use winget:
+winget install --id GitHub.cli
+
+Step 2: Login
+-------------
+gh auth login
+
+Follow the prompts:
+- Choose: GitHub.com
+- Choose: HTTPS
+- Authenticate: Login with a web browser
+- Copy the code shown
+- Press Enter to open browser
+- Paste code and authorize
+
+Step 3: Push
+------------
+git push -u origin main
+
+It will use your authenticated session!
+
+================================================================================
+OPTION 3: USE GITHUB DESKTOP (EASIEST)
+================================================================================
+
+Step 1: Download GitHub Desktop
+--------------------------------
+Go to: https://desktop.github.com
+Download and install
+
+Step 2: Login
+-------------
+Open GitHub Desktop
+Click "Sign in to GitHub.com"
+Login with your credentials
+
+Step 3: Add Repository
+----------------------
+File → Add Local Repository
+Browse to: C:\Users\lenovo\Desktop\TRAWALLY ELECTRONICS\Trawally Electric & Plumbing Company
+Click "Add Repository"
+
+Step 4: Publish
+---------------
+Click "Publish repository"
+Choose: Private (recommended)
+Click "Publish Repository"
+
+Done! Your code is on GitHub!
+
+================================================================================
+CURRENT STATUS
+================================================================================
+
+✅ Git initialized
+✅ Files committed (67 files)
+✅ Remote added (https://github.com/ubaidtra/trawally-management-system.git)
+✅ Branch renamed to main
+⏳ Need to push to GitHub
+
+================================================================================
+RECOMMENDED: USE OPTION 1 (PERSONAL ACCESS TOKEN)
+================================================================================
+
+It's the fastest if you don't want to install additional software.
+
+Just:
+1. Create token on GitHub (takes 2 minutes)
+2. Run: git push -u origin main
+3. Enter username: ubaidtra
+4. Paste token as password
+5. Done!
+
+================================================================================
+
