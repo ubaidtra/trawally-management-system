@@ -85,10 +85,20 @@ const ceoRoutes = require('./routes/ceo');
 const adminRoutes = require('./routes/admin');
 
 app.get('/health', async (req, res) => {
+  const timeout = setTimeout(() => {
+    res.json({ status: 'timeout', db: 'connection timeout', env: process.env.NODE_ENV });
+  }, 8000);
+  
   try {
-    await connectDB();
-    res.json({ status: 'ok', db: 'connected', env: process.env.NODE_ENV });
+    const conn = await connectDB();
+    clearTimeout(timeout);
+    if (conn) {
+      res.json({ status: 'ok', db: 'connected', env: process.env.NODE_ENV });
+    } else {
+      res.json({ status: 'error', db: 'connection failed', env: process.env.NODE_ENV });
+    }
   } catch (err) {
+    clearTimeout(timeout);
     res.json({ status: 'error', db: err.message, env: process.env.NODE_ENV });
   }
 });

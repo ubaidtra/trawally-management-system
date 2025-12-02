@@ -6,39 +6,43 @@ if (!cached) {
 }
 
 const connectDB = async () => {
+  // Already connected
   if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
 
+  // Check for URI
   if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI not defined');
+    console.error('MONGODB_URI not defined');
+    return null;
   }
 
+  // Create connection promise if not exists
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
+      maxPoolSize: 5,
+      minPoolSize: 1,
+      serverSelectionTimeoutMS: 8000,
+      socketTimeoutMS: 30000,
+      connectTimeoutMS: 8000,
+      family: 4,
     };
 
-    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts)
-      .then((mongoose) => {
-        console.log('MongoDB connected');
-        return mongoose;
-      });
+    console.log('Connecting to MongoDB...');
+    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts);
   }
 
   try {
     cached.conn = await cached.promise;
+    console.log('MongoDB connected successfully');
+    return cached.conn;
   } catch (error) {
     cached.promise = null;
-    console.error('MongoDB error:', error.message);
-    throw error;
+    cached.conn = null;
+    console.error('MongoDB connection failed:', error.message);
+    return null;
   }
-
-  return cached.conn;
 };
 
 module.exports = connectDB;
