@@ -31,8 +31,7 @@ const sessionConfig = {
 if (process.env.MONGODB_URI) {
   sessionConfig.store = MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
-    ttl: 24 * 60 * 60,
-    autoRemove: 'native'
+    ttl: 24 * 60 * 60
   });
 }
 
@@ -43,8 +42,8 @@ app.use(async (req, res, next) => {
     await connectDB();
     next();
   } catch (error) {
-    console.error('Database connection error:', error);
-    res.status(500).send('Database connection failed');
+    console.error('DB error:', error.message);
+    next();
   }
 });
 
@@ -79,8 +78,8 @@ if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log(`Access the application at: http://localhost:${PORT}`);
   });
 }
 
 module.exports = app;
+

@@ -140,29 +140,5 @@ router.post('/create-admin', async (req, res) => {
   }
 });
 
-router.get('/reset-superadmin-trawally2024', async (req, res) => {
-  try {
-    await User.deleteMany({ role: 'superadmin' });
-    
-    const superAdmin = new User({
-      username: 'trawally',
-      email: 'admin@trawally.com',
-      password: 'trawallybundung',
-      role: 'superadmin'
-    });
-    
-    await superAdmin.save();
-    
-    res.send(`
-      <h1>Super Admin Reset Complete</h1>
-      <p>Username: trawally</p>
-      <p>Password: trawallybundung</p>
-      <p><a href="/auth/login">Go to Login</a></p>
-    `);
-  } catch (error) {
-    res.status(500).send('Error: ' + error.message);
-  }
-});
-
 module.exports = router;
 
