@@ -24,44 +24,29 @@ const sessionConfig = {
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'lax' : 'lax'
+    sameSite: isProduction ? 'none' : 'lax'
   }
 };
 
 if (process.env.MONGODB_URI) {
-  try {
-    sessionConfig.store = MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
-      ttl: 24 * 60 * 60,
-      touchAfter: 24 * 3600,
-      crypto: { secret: process.env.SESSION_SECRET || 'fallback-secret' },
-      autoRemove: 'interval',
-      autoRemoveInterval: 60,
-      mongoOptions: {
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-      }
-    });
-  } catch (err) {
-    console.error('MongoStore error:', err.message);
-  }
+  sessionConfig.store = MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    ttl: 7 * 24 * 60 * 60,
+    autoRemove: 'native',
+    touchAfter: 24 * 3600
+  });
 }
 
 app.use(session(sessionConfig));
 
-// Only connect to DB for routes that need it
-const dbRoutes = ['/auth', '/superadmin', '/ceo', '/admin', '/setup', '/health'];
 app.use(async (req, res, next) => {
-  const needsDB = dbRoutes.some(route => req.path.startsWith(route));
-  if (needsDB) {
-    try {
-      await connectDB();
-    } catch (error) {
-      console.error('DB connection error:', error.message);
-    }
+  try {
+    await connectDB();
+  } catch (error) {
+    console.error('DB connection error:', error.message);
   }
   next();
 });
