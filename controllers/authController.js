@@ -10,19 +10,19 @@ exports.login = async (req, res) => {
     
     if (!username || !password) {
       req.session.error = 'Please provide both username and password';
-      return res.redirect('/auth/login');
+      return req.session.save(() => res.redirect('/auth/login'));
     }
     
     const user = await User.findOne({ username: username.trim() });
     if (!user) {
       req.session.error = 'Invalid username or password';
-      return res.redirect('/auth/login');
+      return req.session.save(() => res.redirect('/auth/login'));
     }
     
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       req.session.error = 'Invalid username or password';
-      return res.redirect('/auth/login');
+      return req.session.save(() => res.redirect('/auth/login'));
     }
     
     req.session.user = {
@@ -33,11 +33,17 @@ exports.login = async (req, res) => {
     };
     
     req.session.success = `Welcome back, ${user.username}!`;
-    res.redirect(`/${user.role}/dashboard`);
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.redirect('/auth/login');
+      }
+      res.redirect(`/${user.role}/dashboard`);
+    });
   } catch (error) {
     console.error('Login error:', error);
     req.session.error = 'An error occurred during login';
-    res.redirect('/auth/login');
+    req.session.save(() => res.redirect('/auth/login'));
   }
 };
 
