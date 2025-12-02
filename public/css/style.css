@@ -29,7 +29,7 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #1a1a6e 0%, #2d2d8a 100%);
   color: var(--white);
   padding: 1rem 0;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
