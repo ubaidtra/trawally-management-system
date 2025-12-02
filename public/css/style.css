@@ -85,17 +85,19 @@ body {
 }
 
 .hero {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(30, 64, 175, 0.5) 100%), url('/images/tra.jpg');
-  background-size: cover;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(30, 64, 175, 0.3) 100%), url('/images/tra.jpg');
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
+  background-color: #1a1a6e;
   color: var(--white);
-  padding: 6rem 0;
+  padding: 2rem 0;
   text-align: center;
-  min-height: 500px;
+  min-height: 600px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  padding-bottom: 3rem;
 }
 
 .hero-content h1 {
