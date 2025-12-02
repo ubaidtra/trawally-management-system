@@ -36,7 +36,14 @@ if (process.env.MONGODB_URI) {
     sessionConfig.store = MongoStore.create({
       mongoUrl: process.env.MONGODB_URI,
       ttl: 24 * 60 * 60,
-      touchAfter: 24 * 3600
+      touchAfter: 24 * 3600,
+      crypto: { secret: process.env.SESSION_SECRET || 'fallback-secret' },
+      autoRemove: 'interval',
+      autoRemoveInterval: 60,
+      mongoOptions: {
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+      }
     });
   } catch (err) {
     console.error('MongoStore error:', err.message);
@@ -45,11 +52,16 @@ if (process.env.MONGODB_URI) {
 
 app.use(session(sessionConfig));
 
+let dbConnecting = false;
 app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-  } catch (error) {
-    console.error('DB connection error:', error.message);
+  if (!dbConnecting) {
+    dbConnecting = true;
+    try {
+      await connectDB();
+    } catch (error) {
+      console.error('DB connection error:', error.message);
+      dbConnecting = false;
+    }
   }
   next();
 });

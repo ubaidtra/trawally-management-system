@@ -6,17 +6,28 @@ if (!cached) {
 }
 
 const connectDB = async () => {
-  if (cached.conn) {
+  if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
 
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI not defined');
+  }
+
   if (!cached.promise) {
-    cached.promise = mongoose.connect(process.env.MONGODB_URI, {
+    const opts = {
       bufferCommands: false,
-    }).then((mongoose) => {
-      console.log('MongoDB connected');
-      return mongoose;
-    });
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
+    };
+
+    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts)
+      .then((mongoose) => {
+        console.log('MongoDB connected');
+        return mongoose;
+      });
   }
 
   try {
