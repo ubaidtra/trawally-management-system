@@ -16,11 +16,11 @@
         <div class="login-container">
           <h1>Login</h1>
           
-          <% if (error) { %>
+          <% if (typeof error !== 'undefined' && error) { %>
             <div class="alert alert-error"><%= error %></div>
           <% } %>
           
-          <% if (success) { %>
+          <% if (typeof success !== 'undefined' && success) { %>
             <div class="alert alert-success"><%= success %></div>
           <% } %>
           
