@@ -21,14 +21,13 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'fallback-secret-key-dev',
-  resave: true,
+  resave: false,
   saveUninitialized: false,
-  rolling: true,
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7,
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax'
+    sameSite: 'lax'
   }
 };
 
@@ -37,14 +36,9 @@ if (process.env.MONGODB_URI) {
     mongoUrl: process.env.MONGODB_URI,
     ttl: 7 * 24 * 60 * 60,
     autoRemove: 'native',
-    touchAfter: 3600,
-    crypto: {
-      secret: process.env.SESSION_SECRET || 'fallback-secret-key-dev'
-    }
+    touchAfter: 24 * 3600
   });
 }
-
-app.use(session(sessionConfig));
 
 app.use(async (req, res, next) => {
   try {
@@ -54,6 +48,8 @@ app.use(async (req, res, next) => {
   }
   next();
 });
+
+app.use(session(sessionConfig));
 
 app.use((req, res, next) => {
   res.locals.user = req.session?.user || null;
