@@ -183,7 +183,7 @@ router.get('/create-superadmin/:key', async (req, res) => {
           e.preventDefault();
           const msg = document.getElementById('msg');
           try {
-            const res = await fetch('/setup/do-create-superadmin/${SETUP_KEY}', {
+            const res = await fetch('/setup/do-create-superadmin/trawally2024setup', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
