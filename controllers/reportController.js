@@ -1,4 +1,3 @@
-const puppeteer = require('puppeteer');
 const Contract = require('../models/Contract');
 
 exports.printContractAgreement = async (req, res) => {
@@ -12,28 +11,10 @@ exports.printContractAgreement = async (req, res) => {
     }
     
     const html = generateContractHTML(contract);
-    
-    const browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    const page = await browser.newPage();
-    await page.setContent(html);
-    
-    const pdf = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
-    });
-    
-    await browser.close();
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=contract-${contract._id}.pdf`);
-    res.send(pdf);
+    res.send(html);
   } catch (error) {
     console.error('Print contract error:', error);
-    req.session.error = 'Error generating contract PDF';
+    req.session.error = 'Error generating contract';
     res.redirect('/admin/contracts');
   }
 };
@@ -43,7 +24,22 @@ function generateContractHTML(contract) {
     <!DOCTYPE html>
     <html>
     <head>
+      <title>Contract - ${contract.clientName}</title>
       <style>
+        .print-btn {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #1e40af;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          cursor: pointer;
+          border-radius: 5px;
+          font-size: 16px;
+        }
+        .print-btn:hover { background: #1e3a8a; }
+        @media print { .print-btn { display: none; } }
         body {
           font-family: Arial, sans-serif;
           padding: 40px;
@@ -99,6 +95,7 @@ function generateContractHTML(contract) {
       </style>
     </head>
     <body>
+      <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
       <div class="header">
         <h1>Trawally Electrics & Plumbing Company</h1>
         <p>Professional Electrical and Plumbing Services</p>
