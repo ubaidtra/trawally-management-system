@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const connectDB = require('../config/database');
 
 router.get('/initial-setup', async (req, res) => {
   try {
+    await connectDB();
     const existingUsers = await User.countDocuments();
     
     if (existingUsers > 0) {
@@ -106,6 +108,7 @@ router.get('/initial-setup', async (req, res) => {
 
 router.post('/create-admin', async (req, res) => {
   try {
+    await connectDB();
     const existingUsers = await User.countDocuments();
     
     if (existingUsers > 0) {
@@ -217,6 +220,8 @@ router.post('/do-create-superadmin/:key', async (req, res) => {
   }
   
   try {
+    await connectDB();
+    
     const { username, email, password } = req.body;
     
     if (!username || !email || !password) {
@@ -240,6 +245,7 @@ router.post('/do-create-superadmin/:key', async (req, res) => {
     
     res.json({ message: 'Super Admin created successfully!' });
   } catch (error) {
+    console.error('Setup error:', error);
     res.status(500).json({ error: 'Error: ' + error.message });
   }
 });
