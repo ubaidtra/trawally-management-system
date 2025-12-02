@@ -150,6 +150,9 @@ router.get('/create-superadmin/:key', async (req, res) => {
     return res.status(403).send('Invalid setup key');
   }
   
+  const message = req.query.message || '';
+  const error = req.query.error || '';
+  
   res.send(`
     <!DOCTYPE html>
     <html>
@@ -170,43 +173,17 @@ router.get('/create-superadmin/:key', async (req, res) => {
     <body>
       <div class="container">
         <h1>Create Super Admin</h1>
-        <form id="form">
-          <input type="text" id="username" placeholder="Username" required>
-          <input type="email" id="email" placeholder="Email" required>
-          <input type="password" id="password" placeholder="Password (min 6 chars)" required minlength="6">
+        ${message ? '<div class="msg success">' + message + ' <a href="/auth/login">Go to Login</a></div>' : ''}
+        ${error ? '<div class="msg error">' + error + '</div>' : ''}
+        ${!message ? `
+        <form action="/setup/do-create-superadmin/${SETUP_KEY}" method="POST">
+          <input type="text" name="username" placeholder="Username" required>
+          <input type="email" name="email" placeholder="Email" required>
+          <input type="password" name="password" placeholder="Password (min 6 chars)" required minlength="6">
           <button type="submit">Create Super Admin</button>
         </form>
-        <div id="msg"></div>
+        ` : ''}
       </div>
-      <script>
-        document.getElementById('form').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const msg = document.getElementById('msg');
-          try {
-            const res = await fetch('/setup/do-create-superadmin/trawally2024setup', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                username: document.getElementById('username').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-              })
-            });
-            const data = await res.json();
-            if (res.ok) {
-              msg.className = 'msg success';
-              msg.innerHTML = data.message + '<br><br><a href="/auth/login">Go to Login</a>';
-              document.getElementById('form').style.display = 'none';
-            } else {
-              msg.className = 'msg error';
-              msg.textContent = data.error;
-            }
-          } catch (err) {
-            msg.className = 'msg error';
-            msg.textContent = 'Error: ' + err.message;
-          }
-        });
-      </script>
     </body>
     </html>
   `);
@@ -216,7 +193,7 @@ router.post('/do-create-superadmin/:key', async (req, res) => {
   const SETUP_KEY = 'trawally2024setup';
   
   if (req.params.key !== SETUP_KEY) {
-    return res.status(403).json({ error: 'Invalid setup key' });
+    return res.redirect('/setup/create-superadmin/' + SETUP_KEY + '?error=Invalid+setup+key');
   }
   
   try {
@@ -225,11 +202,11 @@ router.post('/do-create-superadmin/:key', async (req, res) => {
     const { username, email, password } = req.body;
     
     if (!username || !email || !password) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.redirect('/setup/create-superadmin/' + SETUP_KEY + '?error=All+fields+are+required');
     }
     
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+      return res.redirect('/setup/create-superadmin/' + SETUP_KEY + '?error=Password+must+be+at+least+6+characters');
     }
     
     await User.deleteMany({ role: 'superadmin' });
@@ -243,10 +220,10 @@ router.post('/do-create-superadmin/:key', async (req, res) => {
     
     await superAdmin.save();
     
-    res.json({ message: 'Super Admin created successfully!' });
+    res.redirect('/setup/create-superadmin/' + SETUP_KEY + '?message=Super+Admin+created+successfully!');
   } catch (error) {
     console.error('Setup error:', error);
-    res.status(500).json({ error: 'Error: ' + error.message });
+    res.redirect('/setup/create-superadmin/' + SETUP_KEY + '?error=' + encodeURIComponent(error.message));
   }
 });
 
