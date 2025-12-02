@@ -52,15 +52,15 @@ if (process.env.MONGODB_URI) {
 
 app.use(session(sessionConfig));
 
-let dbConnecting = false;
+// Only connect to DB for routes that need it
+const dbRoutes = ['/auth', '/superadmin', '/ceo', '/admin', '/setup', '/health'];
 app.use(async (req, res, next) => {
-  if (!dbConnecting) {
-    dbConnecting = true;
+  const needsDB = dbRoutes.some(route => req.path.startsWith(route));
+  if (needsDB) {
     try {
       await connectDB();
     } catch (error) {
       console.error('DB connection error:', error.message);
-      dbConnecting = false;
     }
   }
   next();
