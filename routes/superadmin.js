@@ -11,7 +11,6 @@ router.get('/dashboard', superadminController.showDashboard);
 router.get('/users', superadminController.showUsers);
 router.post('/users', superadminController.createUser);
 router.delete('/users/:id', superadminController.deleteUser);
-router.post('/users/:id/reset-password', superadminController.resetPassword);
 
 module.exports = router;
 

@@ -101,31 +101,3 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-exports.resetPassword = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { newPassword } = req.body;
-    
-    if (!newPassword || newPassword.length < 6) {
-      req.session.error = 'Password must be at least 6 characters';
-      return res.redirect('/superadmin/users');
-    }
-    
-    const user = await User.findById(id);
-    if (!user) {
-      req.session.error = 'User not found';
-      return res.redirect('/superadmin/users');
-    }
-    
-    user.password = newPassword;
-    await user.save();
-    
-    req.session.success = `Password reset for ${user.username}`;
-    res.redirect('/superadmin/users');
-  } catch (error) {
-    console.error('Reset password error:', error);
-    req.session.error = 'Error resetting password';
-    res.redirect('/superadmin/users');
-  }
-};
-

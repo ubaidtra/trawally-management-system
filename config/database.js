@@ -11,40 +11,34 @@ const connectDB = async () => {
   }
 
   if (!process.env.MONGODB_URI) {
-    console.error('MONGODB_URI not defined');
-    return null;
+    throw new Error('MONGODB_URI not defined');
   }
 
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      maxPoolSize: 5,
-      minPoolSize: 1,
-      serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 10000,
-      family: 4,
-      tls: true,
-      tlsAllowInvalidCertificates: false,
-      tlsAllowInvalidHostnames: false,
-      retryWrites: true,
-      w: 'majority',
     };
 
-    console.log('Connecting to MongoDB...');
-    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts);
+    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts)
+      .then((mongoose) => {
+        console.log('MongoDB connected');
+        return mongoose;
+      });
   }
 
   try {
     cached.conn = await cached.promise;
-    console.log('MongoDB Atlas connected successfully');
-    return cached.conn;
   } catch (error) {
     cached.promise = null;
-    cached.conn = null;
-    console.error('MongoDB connection failed:', error.message);
-    return null;
+    console.error('MongoDB error:', error.message);
+    throw error;
   }
+
+  return cached.conn;
 };
 
 module.exports = connectDB;
