@@ -8,8 +8,6 @@ const connectDB = require('./config/database');
 
 const app = express();
 
-let dbConnected = false;
-
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -18,28 +16,36 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
 
-app.use(session({
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'fallback-secret-key',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    ttl: 24 * 60 * 60
-  }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
-}));
+};
+
+if (process.env.MONGODB_URI) {
+  sessionConfig.store = MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    ttl: 24 * 60 * 60,
+    autoRemove: 'native'
+  });
+}
+
+app.use(session(sessionConfig));
 
 app.use(async (req, res, next) => {
-  if (!dbConnected) {
+  try {
     await connectDB();
-    dbConnected = true;
+    next();
+  } catch (error) {
+    console.error('Database connection error:', error);
+    res.status(500).send('Database connection failed');
   }
-  next();
 });
 
 app.use((req, res, next) => {
