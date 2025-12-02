@@ -6,27 +6,29 @@ if (!cached) {
 }
 
 const connectDB = async () => {
-  // Already connected
   if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
 
-  // Check for URI
   if (!process.env.MONGODB_URI) {
     console.error('MONGODB_URI not defined');
     return null;
   }
 
-  // Create connection promise if not exists
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
       maxPoolSize: 5,
       minPoolSize: 1,
-      serverSelectionTimeoutMS: 8000,
-      socketTimeoutMS: 30000,
-      connectTimeoutMS: 8000,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
       family: 4,
+      tls: true,
+      tlsAllowInvalidCertificates: false,
+      tlsAllowInvalidHostnames: false,
+      retryWrites: true,
+      w: 'majority',
     };
 
     console.log('Connecting to MongoDB...');
@@ -35,7 +37,7 @@ const connectDB = async () => {
 
   try {
     cached.conn = await cached.promise;
-    console.log('MongoDB connected successfully');
+    console.log('MongoDB Atlas connected successfully');
     return cached.conn;
   } catch (error) {
     cached.promise = null;

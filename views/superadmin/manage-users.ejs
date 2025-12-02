@@ -43,6 +43,7 @@
                 <td><span class="badge badge-<%= user.role %>"><%= user.role %></span></td>
                 <td><%= new Date(user.createdAt).toLocaleDateString() %></td>
                 <td>
+                  <button type="button" class="btn btn-warning btn-sm" onclick="openResetModal('<%= user._id %>', '<%= user.username %>')">Reset Password</button>
                   <form action="/superadmin/users/<%= user._id %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this user?')">
                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                   </form>
@@ -89,7 +90,35 @@
     </div>
   </div>
   
+  <div id="resetPasswordModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Reset Password</h2>
+        <span class="close" onclick="toggleModal('resetPasswordModal')">&times;</span>
+      </div>
+      <form id="resetPasswordForm" method="POST">
+        <p>Reset password for: <strong id="resetUsername"></strong></p>
+        <div class="form-group">
+          <label for="newPassword">New Password</label>
+          <input type="password" id="newPassword" name="newPassword" required minlength="6">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="toggleModal('resetPasswordModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Reset Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
   <script src="/js/main.js"></script>
+  <script>
+    function openResetModal(userId, username) {
+      document.getElementById('resetPasswordForm').action = '/superadmin/users/' + userId + '/reset-password';
+      document.getElementById('resetUsername').textContent = username;
+      document.getElementById('newPassword').value = '';
+      toggleModal('resetPasswordModal');
+    }
+  </script>
 </body>
 </html>
 

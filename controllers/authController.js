@@ -19,7 +19,15 @@ exports.login = async (req, res) => {
       return res.redirect('/auth/login');
     }
     
-    const isMatch = await user.comparePassword(password);
+    let isMatch = false;
+    try {
+      isMatch = await user.comparePassword(password);
+    } catch (bcryptError) {
+      console.error('Password comparison error:', bcryptError.message);
+      req.session.error = 'Account needs password reset. Contact administrator.';
+      return res.redirect('/auth/login');
+    }
+    
     if (!isMatch) {
       req.session.error = 'Invalid username or password';
       return res.redirect('/auth/login');
