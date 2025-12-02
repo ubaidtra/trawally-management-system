@@ -1,9 +1,15 @@
-const CACHE_NAME = 'trawally-v1';
+const CACHE_NAME = 'trawally-v2';
 const STATIC_ASSETS = [
   '/',
   '/css/style.css',
   '/js/main.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/images/icon-192.svg',
+  '/images/icon-512.svg',
+  '/images/icon-maskable.svg',
+  '/images/tra.jpg',
+  '/about',
+  '/contact'
 ];
 
 self.addEventListener('install', (event) => {
