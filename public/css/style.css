@@ -85,16 +85,15 @@ body {
 }
 
 .hero {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.5) 100%), url('/images/tra.jpg');
-  background-size: 100% auto;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%), url('/images/tra.jpg');
+  background-size: contain;
   background-position: top center;
   background-repeat: no-repeat;
   background-color: #1a1a6e;
   color: var(--white);
   padding: 0;
   text-align: center;
-  min-height: auto;
-  aspect-ratio: 16/9;
+  min-height: 700px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -102,10 +101,17 @@ body {
   position: relative;
 }
 
+@media (min-width: 1200px) {
+  .hero {
+    min-height: 800px;
+  }
+}
+
 @media (max-width: 768px) {
   .hero {
-    aspect-ratio: 4/3;
+    min-height: 400px;
     background-size: cover;
+    background-position: center;
   }
 }
 
