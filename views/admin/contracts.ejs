@@ -268,42 +268,70 @@
   <script src="/js/main.js"></script>
   <script>
     function updateContract(id, status, paymentStatus) {
-      document.getElementById('updateContractForm').action = '/admin/contracts/' + id;
-      document.getElementById('update_status').value = status;
-      document.getElementById('update_paymentStatus').value = paymentStatus;
+      const form = document.getElementById('updateContractForm');
+      const statusSelect = document.getElementById('update_status');
+      const paymentSelect = document.getElementById('update_paymentStatus');
+      
+      if (!form || !statusSelect || !paymentSelect) {
+        console.error('Update form elements not found');
+        return;
+      }
+      
+      form.action = '/admin/contracts/' + id;
+      statusSelect.value = status;
+      paymentSelect.value = paymentStatus;
       toggleModal('updateContractModal');
     }
 
     async function deployStaff(contractId) {
-      document.getElementById('deploy_contractId').value = contractId;
-      if (document.getElementById('deploy_serviceId')) {
-        document.getElementById('deploy_serviceId').value = '';
-      }
-      document.getElementById('deploy_deploymentDate').valueAsDate = new Date();
+      const contractIdInput = document.getElementById('deploy_contractId');
+      const serviceIdInput = document.getElementById('deploy_serviceId');
+      const deploymentDateInput = document.getElementById('deploy_deploymentDate');
       const staffSelect = document.getElementById('deploy_staffId');
+      const transportMethodSelect = document.getElementById('deploy_transportationMethod');
+      const transportCostInput = document.getElementById('deploy_transportationCost');
+      const notesInput = document.getElementById('deploy_notes');
+      
+      if (!contractIdInput || !deploymentDateInput || !staffSelect || !transportMethodSelect || !transportCostInput) {
+        console.error('Deploy staff form elements not found');
+        alert('Error: Form elements not found. Please refresh the page.');
+        return;
+      }
+      
+      contractIdInput.value = contractId;
+      if (serviceIdInput) {
+        serviceIdInput.value = '';
+      }
+      deploymentDateInput.valueAsDate = new Date();
+      
       Array.from(staffSelect.options).forEach(option => {
         option.selected = false;
         option.disabled = false;
         option.style.color = '';
       });
-      document.getElementById('deploy_transportationMethod').value = 'public-transport';
-      document.getElementById('deploy_transportationCost').value = '0';
-      document.getElementById('deploy_notes').value = '';
+      
+      transportMethodSelect.value = 'public-transport';
+      transportCostInput.value = '0';
+      if (notesInput) {
+        notesInput.value = '';
+      }
       
       try {
         const response = await fetch(`/deployment/api?contractId=${contractId}`);
-        const deployments = await response.json();
-        const deployedStaffIds = deployments.map(d => d.staff._id.toString());
-        
-        Array.from(staffSelect.options).forEach(option => {
-          if (deployedStaffIds.includes(option.value)) {
-            option.disabled = true;
-            option.style.color = '#999';
-          } else {
-            option.disabled = false;
-            option.style.color = '';
-          }
-        });
+        if (response.ok) {
+          const deployments = await response.json();
+          const deployedStaffIds = deployments.map(d => d.staff._id.toString());
+          
+          Array.from(staffSelect.options).forEach(option => {
+            if (deployedStaffIds.includes(option.value)) {
+              option.disabled = true;
+              option.style.color = '#999';
+            } else {
+              option.disabled = false;
+              option.style.color = '';
+            }
+          });
+        }
       } catch (error) {
         console.error('Error loading existing deployments:', error);
       }
