@@ -82,12 +82,40 @@ exports.updateContract = async (req, res) => {
     const { id } = req.params;
     const { status, paymentStatus } = req.body;
     
-    await Contract.findByIdAndUpdate(id, { status, paymentStatus });
+    if (!id) {
+      req.session.error = 'Contract ID is required';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    const validStatuses = ['pending', 'in-progress', 'completed'];
+    const validPaymentStatuses = ['paid', 'unpaid'];
+    
+    if (status && !validStatuses.includes(status)) {
+      req.session.error = 'Invalid status value';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    if (paymentStatus && !validPaymentStatuses.includes(paymentStatus)) {
+      req.session.error = 'Invalid payment status value';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    const contract = await Contract.findById(id);
+    if (!contract) {
+      req.session.error = 'Contract not found';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    const updateData = {};
+    if (status) updateData.status = status;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    
+    await Contract.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     req.session.success = 'Contract updated successfully';
     req.session.save(() => res.redirect('/admin/contracts'));
   } catch (error) {
     console.error('Update contract error:', error);
-    req.session.error = 'Error updating contract';
+    req.session.error = 'Error updating contract: ' + (error.message || 'Unknown error');
     req.session.save(() => res.redirect('/admin/contracts'));
   }
 };

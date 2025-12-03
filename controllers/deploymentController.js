@@ -37,8 +37,13 @@ exports.createDeployment = async (req, res) => {
     const hasContractId = contractId && contractId.trim() !== '';
     const hasServiceId = serviceId && serviceId.trim() !== '';
     
-    if (!staffId || !transportationMethod) {
-      req.session.error = 'Staff and transportation method are required';
+    if (!transportationMethod) {
+      req.session.error = 'Transportation method is required';
+      return req.session.save(() => res.redirect(getRedirectUrl(hasContractId)));
+    }
+    
+    if (!staffId || (Array.isArray(staffId) && staffId.length === 0) || (typeof staffId === 'string' && staffId.trim() === '')) {
+      req.session.error = 'Please select at least one staff member';
       return req.session.save(() => res.redirect(getRedirectUrl(hasContractId)));
     }
     
@@ -47,17 +52,18 @@ exports.createDeployment = async (req, res) => {
       return req.session.save(() => res.redirect(getRedirectUrl(hasContractId)));
     }
     
-    const staffIds = Array.isArray(staffId) ? staffId : [staffId];
+    const staffIds = Array.isArray(staffId) ? staffId.filter(id => id && id.trim() !== '') : [staffId].filter(id => id && id.trim() !== '');
     
     if (staffIds.length === 0) {
       req.session.error = 'At least one staff member must be selected';
       return req.session.save(() => res.redirect(getRedirectUrl(hasContractId)));
     }
     
-    const staffMembers = await Staff.find({ _id: { $in: staffIds }, status: 'active' });
+    const staffMembers = await Staff.find({ _id: { $in: staffIds }, status: 'active' }).catch(() => []);
     
     if (staffMembers.length !== staffIds.length) {
-      req.session.error = 'One or more selected staff members are not available';
+      const missingCount = staffIds.length - staffMembers.length;
+      req.session.error = `${missingCount} selected staff member${missingCount > 1 ? 's are' : ' is'} not available or inactive`;
       return req.session.save(() => res.redirect(getRedirectUrl(hasContractId)));
     }
     
@@ -68,16 +74,16 @@ exports.createDeployment = async (req, res) => {
       ? { contract: finalContractId, staff: { $in: staffIds }, status: { $ne: 'cancelled' } }
       : { service: finalServiceId, staff: { $in: staffIds }, status: { $ne: 'cancelled' } };
     
-    const existingDeployments = await Deployment.find(query).populate('staff', 'name');
+    const existingDeployments = await Deployment.find(query).populate('staff', 'name').catch(() => []);
     
     if (existingDeployments.length > 0) {
-      const duplicateStaff = existingDeployments.map(d => d.staff.name).join(', ');
+      const duplicateStaff = existingDeployments.map(d => d.staff && d.staff.name ? d.staff.name : 'Unknown').join(', ');
       req.session.error = `Some staff are already deployed: ${duplicateStaff}. Please remove existing deployments first.`;
       return req.session.save(() => res.redirect(getRedirectUrl(hasContractId)));
     }
     
-    const contract = finalContractId ? await Contract.findById(finalContractId) : null;
-    const service = finalServiceId ? await Service.findById(finalServiceId) : null;
+    const contract = finalContractId ? await Contract.findById(finalContractId).catch(() => null) : null;
+    const service = finalServiceId ? await Service.findById(finalServiceId).catch(() => null) : null;
     
     if (finalContractId && !contract) {
       req.session.error = 'Contract not found';
@@ -101,16 +107,19 @@ exports.createDeployment = async (req, res) => {
       deployedBy: req.session.user.id
     }));
     
-    await Deployment.insertMany(deployments);
+    await Deployment.insertMany(deployments).catch((err) => {
+      console.error('Deployment insert error:', err);
+      throw new Error('Failed to create deployments: ' + err.message);
+    });
     
     if (contract && contract.status === 'pending') {
       contract.status = 'in-progress';
-      await contract.save();
+      await contract.save().catch(err => console.error('Contract status update error:', err));
     }
     
     if (service && service.status === 'pending') {
       service.status = 'in-progress';
-      await service.save();
+      await service.save().catch(err => console.error('Service status update error:', err));
     }
     
     const staffCount = staffIds.length;
@@ -118,7 +127,7 @@ exports.createDeployment = async (req, res) => {
     req.session.save(() => res.redirect(getRedirectUrl(hasContractId)));
   } catch (error) {
     console.error('Create deployment error:', error);
-    req.session.error = 'Error deploying staff';
+    req.session.error = 'Error deploying staff: ' + (error.message || 'Unknown error');
     const hasContractId = req.body.contractId && req.body.contractId.trim() !== '';
     req.session.save(() => res.redirect(getRedirectUrl(hasContractId)));
   }
