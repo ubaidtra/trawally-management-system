@@ -1,6 +1,6 @@
-# Deployment Guide - GitHub & Vercel
+# Deployment Guide - GitHub & VPS (PM2 + Nginx)
 
-Complete step-by-step guide to deploy Trawally Management System to GitHub and Vercel.
+Complete step-by-step guide to deploy Trawally Management System to GitHub and a self-managed VPS environment (no serverless layers).
 
 ---
 
@@ -8,7 +8,7 @@ Complete step-by-step guide to deploy Trawally Management System to GitHub and V
 
 Before you begin, make sure you have:
 - [x] A GitHub account (create at https://github.com/signup)
-- [x] A Vercel account (create at https://vercel.com/signup)
+- [x] A VPS provider account (DigitalOcean, Hetzner, AWS Lightsail, etc.)
 - [x] Git installed on your computer
 - [x] Your MongoDB Atlas database is working
 - [x] The system is working locally
@@ -91,89 +91,145 @@ git push -u origin main
 
 ---
 
-## Part 2: Deploy to Vercel
+## Part 2: Deploy to a VPS (Ubuntu 22.04 + PM2 + Nginx)
 
-### Step 1: Create Vercel Account
+This section keeps everything on your own virtual machine (DigitalOcean, AWS Lightsail, Hetzner, etc.) so the backend is **not** serverless.
 
-1. Go to https://vercel.com/signup
-2. Click **"Continue with GitHub"**
-3. Authorize Vercel to access your GitHub account
+### Step 1: Provision the Server
 
-### Step 2: Import Project from GitHub
+1. Create a VPS running **Ubuntu 22.04 LTS**, 2GB RAM or more.
+2. Add your SSH key during creation, or enable password login temporarily.
+3. Note the public IP and configure a firewall to allow ports `22`, `80`, and `443`.
 
-1. On Vercel dashboard, click **"Add New..."**
-2. Select **"Project"**
-3. Click **"Import Git Repository"**
-4. Find `trawally-management-system` in the list
-5. Click **"Import"**
+### Step 2: SSH Into the Server
 
-### Step 3: Configure Project Settings
-
-**Framework Preset:**
-- Select: **Other** (or leave as detected)
-
-**Root Directory:**
-- Leave as: `./` (root)
-
-**Build and Output Settings:**
-- Build Command: Leave empty or use `npm install`
-- Output Directory: Leave empty
-- Install Command: `npm install`
-
-### Step 4: Add Environment Variables
-
-This is **CRITICAL** - Click **"Environment Variables"** and add these:
-
-| Name | Value |
-|------|-------|
-| `MONGODB_URI` | `mongodb+srv://ubaidttech_db_user:tra%40tech.281986@cluster0.lxszwnk.mongodb.net/trawally-management?retryWrites=true&w=majority&appName=Cluster0` |
-| `SESSION_SECRET` | `trawally-production-secret-key-2024` |
-| `PORT` | `4000` |
-| `NODE_ENV` | `production` |
-
-**Important Notes:**
-- Make sure the `@` in password is encoded as `%40`
-- Use a strong SESSION_SECRET for production
-- Add these for all environments (Production, Preview, Development)
-
-### Step 5: Deploy
-
-1. Click **"Deploy"**
-2. Wait 2-5 minutes for deployment
-3. Vercel will build and deploy your application
-
-### Step 6: Check Deployment Status
-
-You'll see:
-- ✅ **Building** - Installing dependencies
-- ✅ **Deploying** - Uploading to Vercel servers
-- ✅ **Ready** - Deployment successful!
-
-### Step 7: Access Your Live Application
-
-Once deployed, you'll get a URL like:
-```
-https://trawally-management-system.vercel.app
+```bash
+ssh root@YOUR_SERVER_IP
+# or, if you created a non-root user:
+ssh deploy@YOUR_SERVER_IP
 ```
 
-Click **"Visit"** to open your live application!
+Immediately create a deploy user if you logged in as root:
+
+```bash
+adduser deploy
+usermod -aG sudo deploy
+rsync -a ~/.ssh /home/deploy/
+su - deploy
+```
+
+### Step 3: Install System Packages
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y build-essential git curl ufw nginx
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g pm2
+```
+
+Enable uncomplicated firewall:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow "Nginx Full"
+sudo ufw enable
+```
+
+### Step 4: Pull the Project
+
+```bash
+cd /var/www
+sudo mkdir trawally && sudo chown deploy:deploy trawally
+cd trawally
+git clone https://github.com/YOUR-USERNAME/trawally-management-system.git app
+cd app
+npm install
+```
+
+### Step 5: Configure Environment Variables
+
+Create `.env` (or edit existing) inside `app`:
+
+```
+MONGODB_URI=mongodb+srv://ubaidttech_db_user:tra%40tech.281986@cluster0.lxszwnk.mongodb.net/trawally-management?retryWrites=true&w=majority&appName=Cluster0
+SESSION_SECRET=trawally-production-secret-key-2024
+NODE_ENV=production
+PORT=4000
+```
+
+Adjust secrets before going live. Keep this file out of Git.
+
+### Step 6: Seed or Migrate (Optional)
+
+Run any setup scripts you need (e.g., create indexes, seed data). Do this once while logged in.
+
+### Step 7: Start the App with PM2
+
+```bash
+pm2 start server.js --name trawally --time
+pm2 save
+pm2 startup systemd
+```
+
+PM2 will generate a command (e.g., `sudo env PATH=$PATH pm2 startup ...`). Run it so the process auto-starts on reboot.
+
+### Step 8: Configure Nginx Reverse Proxy
+
+Create `/etc/nginx/sites-available/trawally`:
+
+```
+server {
+    server_name trawally.com www.trawally.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+    listen 80;
+}
+```
+
+Enable the site:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/trawally /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### Step 9: Add HTTPS (Let's Encrypt)
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d trawally.com -d www.trawally.com
+```
+
+Certbot will update the Nginx file for SSL and set up automatic renewal (`systemctl list-timers *certbot*`).
+
+### Step 10: Verify Everything
+
+1. Visit `https://trawally.com`.
+2. Hit `/health` or `/auth/login` to confirm the Express server responds.
+3. Check PM2 logs if something fails:
+   ```bash
+   pm2 logs trawally
+   tail -f logs/combined.log # if you log to files
+   ```
 
 ---
 
-## Part 3: Configure Custom Domain (Optional)
+## Part 3: Configure DNS & Domain (Optional but Recommended)
 
-### Step 1: Go to Project Settings
-
-1. Click on your project in Vercel
-2. Go to **"Settings"**
-3. Click **"Domains"**
-
-### Step 2: Add Custom Domain
-
-1. Enter your domain (e.g., `trawally.com`)
-2. Click **"Add"**
-3. Follow DNS configuration instructions
-4. Wait for DNS propagation (can take 24-48 hours)
+1. In your domain registrar create two `A` records:
+   - `@` → `YOUR_SERVER_IP`
+   - `www` → `YOUR_SERVER_IP`
+2. Lower TTL to 300s during setup for faster propagation.
+3. Wait for DNS to resolve before running Certbot; verify with `dig trawally.com`.
 
 ---
 
@@ -183,8 +239,8 @@ Click **"Visit"** to open your live application!
 
 Since this is a fresh deployment, you need to create a Super Admin:
 
-**Option A: Use the script remotely (if Vercel allows)**
-- This might not work on Vercel's serverless environment
+**Option A: Run the setup script on the VPS**
+- SSH into the server and execute your admin creation script so it targets the production database.
 
 **Option B: Create directly in MongoDB Atlas**
 
@@ -220,7 +276,7 @@ I'll create a one-time setup endpoint for you.
 
 ### Step 2: Test the Live Application
 
-1. Visit your Vercel URL
+1. Visit your domain (HTTPS)
 2. Go to `/auth/login`
 3. Login with Super Admin credentials
 4. Create CEO and Admin accounts
@@ -230,7 +286,7 @@ I'll create a one-time setup endpoint for you.
 
 ## Part 5: Updating Your Deployment
 
-### When You Make Changes Locally:
+### After Local Changes:
 
 ```bash
 # 1. Add changes
@@ -243,80 +299,83 @@ git commit -m "Description of changes"
 git push origin main
 ```
 
-**Vercel will automatically detect the push and redeploy!** 🚀
+### Redeploy on the Server:
+
+```bash
+ssh deploy@YOUR_SERVER_IP
+cd /var/www/trawally/app
+git pull origin main
+npm install --production
+pm2 restart trawally
+```
+
+If you changed environment variables, update `.env`, then `pm2 reload trawally`.
 
 ---
 
-## Part 6: Vercel Configuration File
+## Part 6: PM2 Ecosystem File (Optional)
 
-Create a `vercel.json` file in your project root for better configuration:
+Create `ecosystem.config.js` in the project root so you can manage environments cleanly:
 
-```json
-{
-  "version": 2,
-  "builds": [
+```js
+module.exports = {
+  apps: [
     {
-      "src": "server.js",
-      "use": "@vercel/node"
+      name: "trawally",
+      script: "server.js",
+      env: {
+        NODE_ENV: "production",
+        PORT: 4000
+      }
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "server.js"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
-}
+  ]
+};
+```
+
+Then run:
+
+```bash
+pm2 start ecosystem.config.js
+pm2 save
 ```
 
 ---
 
 ## Troubleshooting
 
-### Issue: "Module not found" on Vercel
+### Issue: "Module not found" when running on the VPS
 
 **Solution:**
-- Make sure all dependencies are in `package.json`
-- Run `npm install` locally to verify
-- Push changes to GitHub
+- Ensure dependencies are in `package.json`.
+- Run `npm install --production` on the server.
+- Delete `node_modules` and reinstall if corrupted.
 
 ### Issue: "Cannot connect to MongoDB"
 
 **Solution:**
-- Check environment variables in Vercel
-- Make sure MongoDB Atlas allows connections from anywhere (0.0.0.0/0)
-- Verify the connection string is correct
+- Check `.env` on the server.
+- Make sure MongoDB Atlas allows the server IP or `0.0.0.0/0` temporarily.
+- Verify outbound traffic isn’t blocked by a firewall.
 
 ### Issue: "Session not persisting"
 
 **Solution:**
-- Make sure `SESSION_SECRET` is set in Vercel environment variables
-- Check that cookies are enabled in your browser
+- Confirm `SESSION_SECRET` is the same across restarts.
+- Check that `proxy_set_header` directives exist in Nginx so cookies stay intact.
 
 ### Issue: "Port already in use"
 
 **Solution:**
-- Vercel assigns ports automatically
-- Remove `PORT` from environment variables or set to `3000`
+- Stop conflicting processes: `sudo lsof -i :4000`.
+- Restart PM2: `pm2 restart trawally`.
+- Verify Nginx is proxying to the correct port.
 
 ### Issue: Puppeteer (PDF generation) not working
 
 **Solution:**
-Puppeteer doesn't work well on Vercel's serverless environment. Options:
-
-1. **Use a different PDF library:**
-   - Install: `npm install pdfkit`
-   - Rewrite PDF generation using PDFKit
-
-2. **Use an external PDF service:**
-   - DocRaptor
-   - PDFShift
-   - HTML2PDF API
-
-3. **Disable PDF features temporarily**
+- Install missing packages: `sudo apt install -y chromium-browser`.
+- Run Puppeteer with `--no-sandbox` if necessary.
+- For heavy PDF needs, consider a dedicated microservice.
 
 ---
 
@@ -327,7 +386,7 @@ Puppeteer doesn't work well on Vercel's serverless environment. Options:
 - [x] Change `SESSION_SECRET` to a strong random string
 - [x] Use strong passwords for all accounts
 - [x] Enable MongoDB Atlas IP whitelist (optional)
-- [x] Use HTTPS (Vercel provides this automatically)
+- [x] Use HTTPS (Certbot handles renewal)
 - [x] Don't commit `.env` file to GitHub
 
 ### 2. MongoDB Atlas Configuration
@@ -335,7 +394,7 @@ Puppeteer doesn't work well on Vercel's serverless environment. Options:
 1. Go to MongoDB Atlas
 2. Click **"Network Access"**
 3. Add IP: `0.0.0.0/0` (allow from anywhere)
-   - Or add Vercel's IP ranges for better security
+   - Or add your VPS public IP for tighter security
 
 ### 3. Environment Variables Security
 
@@ -345,15 +404,14 @@ Puppeteer doesn't work well on Vercel's serverless environment. Options:
 
 ### 4. Monitoring
 
-**In Vercel:**
-- Check **"Analytics"** for traffic
-- Check **"Logs"** for errors
-- Set up **"Notifications"** for deployment status
+**On the VPS:**
+- `pm2 status` and `pm2 logs trawally`.
+- `sudo journalctl -u nginx -f` to watch reverse proxy.
+- Set up `fail2ban` and automatic security updates.
 
 **In MongoDB Atlas:**
-- Monitor database usage
-- Set up alerts for high usage
-- Enable automatic backups
+- Monitor database usage.
+- Enable alerts and backups.
 
 ---
 
@@ -381,22 +439,23 @@ git pull origin main
 git log --oneline
 ```
 
-### Vercel CLI (Optional)
-
-Install Vercel CLI for command-line deployment:
+### PM2 Reference
 
 ```bash
-# Install globally
-npm install -g vercel
+# List processes
+pm2 ls
 
-# Login
-vercel login
+# View logs
+pm2 logs trawally
 
-# Deploy
-vercel
+# Restart the app
+pm2 restart trawally
 
-# Deploy to production
-vercel --prod
+# Reload after code changes
+pm2 reload trawally
+
+# Remove from PM2
+pm2 delete trawally
 ```
 
 ---
@@ -405,12 +464,12 @@ vercel --prod
 
 Before going live, verify:
 
-- [ ] All environment variables are set in Vercel
+- [ ] `.env` is present on the server with production secrets
 - [ ] MongoDB Atlas is accessible
 - [ ] Super Admin account is created
 - [ ] All features work on production
-- [ ] HTTPS is enabled (automatic on Vercel)
-- [ ] Custom domain is configured (if applicable)
+- [ ] HTTPS certificate is valid (auto-renews via Certbot)
+- [ ] DNS points to the VPS
 - [ ] Backup strategy is in place
 - [ ] Error logging is working
 - [ ] Performance is acceptable
@@ -419,39 +478,37 @@ Before going live, verify:
 
 ## Support & Resources
 
-### Vercel Documentation
-- https://vercel.com/docs
-
 ### GitHub Documentation
 - https://docs.github.com
 
 ### MongoDB Atlas Documentation
 - https://docs.atlas.mongodb.com
 
-### Need Help?
-- Vercel Support: https://vercel.com/support
-- GitHub Support: https://support.github.com
+### Ubuntu / Nginx / PM2 References
+- https://ubuntu.com/server/docs
+- https://nginx.org/en/docs/
+- https://pm2.keymetrics.io/
 
 ---
 
 ## Summary
 
 **Deployment Flow:**
-1. Local Development → Git → GitHub → Vercel → Live Application
+1. Local Development → Git → GitHub → VPS (PM2 + Nginx) → Live Application
 
 **Update Flow:**
 1. Make changes locally
 2. Commit to Git
 3. Push to GitHub
-4. Vercel auto-deploys
+4. Pull on the VPS + restart PM2
 
 **Your Live URLs:**
 - GitHub: `https://github.com/YOUR-USERNAME/trawally-management-system`
-- Vercel: `https://trawally-management-system.vercel.app`
+- Production: `https://trawally.com`
 
 ---
 
-🎉 **Congratulations! Your Trawally Management System is now live and accessible worldwide!**
+🎉 **Great job! Your Trawally Management System now runs on your own infrastructure.**
 
 Contact: +2203980627 | +2207980698
 

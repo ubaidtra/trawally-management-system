@@ -68,6 +68,8 @@ const setupRoutes = require('./routes/setup');
 const superadminRoutes = require('./routes/superadmin');
 const ceoRoutes = require('./routes/ceo');
 const adminRoutes = require('./routes/admin');
+const deploymentRoutes = require('./routes/deployment');
+const apiAuthRoutes = require('./routes/apiAuth');
 
 app.get('/health', async (req, res) => {
   const timeout = setTimeout(() => {
@@ -88,12 +90,14 @@ app.get('/health', async (req, res) => {
   }
 });
 
+app.use('/api/auth', apiAuthRoutes);
 app.use('/', publicRoutes);
 app.use('/auth', authRoutes);
 app.use('/setup', setupRoutes);
 app.use('/superadmin', superadminRoutes);
 app.use('/ceo', ceoRoutes);
 app.use('/admin', adminRoutes);
+app.use('/deployment', deploymentRoutes);
 
 app.use((req, res) => {
   res.status(404).render('public/404', { title: '404 - Page Not Found' });

@@ -24,10 +24,6 @@ const serviceSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  assignedStaff: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Staff'
-  }],
   serviceDate: {
     type: Date,
     required: true

@@ -24,10 +24,6 @@ const contractSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  assignedStaff: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Staff'
-  }],
   startDate: {
     type: Date,
     required: true
