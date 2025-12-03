@@ -5,23 +5,30 @@ const Service = require('../models/Service');
 
 exports.showDashboard = async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
-    const totalStaff = await Staff.countDocuments();
-    const totalContracts = await Contract.countDocuments();
-    const totalServices = await Service.countDocuments();
+    const totalUsers = await User.countDocuments().catch(() => 0);
+    const totalStaff = await Staff.countDocuments().catch(() => 0);
+    const totalContracts = await Contract.countDocuments().catch(() => 0);
+    const totalServices = await Service.countDocuments().catch(() => 0);
     
     res.render('superadmin/dashboard', {
       title: 'Super Admin Dashboard',
       currentPage: 'dashboard',
-      totalUsers,
-      totalStaff,
-      totalContracts,
-      totalServices
+      totalUsers: totalUsers || 0,
+      totalStaff: totalStaff || 0,
+      totalContracts: totalContracts || 0,
+      totalServices: totalServices || 0
     });
   } catch (error) {
     console.error('Dashboard error:', error);
-    req.session.error = 'Error loading dashboard';
-    res.redirect('/');
+    res.render('superadmin/dashboard', {
+      title: 'Super Admin Dashboard',
+      currentPage: 'dashboard',
+      totalUsers: 0,
+      totalStaff: 0,
+      totalContracts: 0,
+      totalServices: 0,
+      error: 'Error loading dashboard data'
+    });
   }
 };
 

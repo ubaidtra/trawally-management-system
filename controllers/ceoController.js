@@ -5,45 +5,57 @@ const Attendance = require('../models/Attendance');
 
 exports.showDashboard = async (req, res) => {
   try {
-    const totalStaff = await Staff.countDocuments();
-    const activeContracts = await Contract.countDocuments({ status: { $ne: 'completed' } });
-    const pendingPayments = await Contract.countDocuments({ paymentStatus: 'unpaid' }) + 
-                           await Service.countDocuments({ paymentStatus: 'unpaid' });
+    const totalStaff = await Staff.countDocuments().catch(() => 0);
+    const activeContracts = await Contract.countDocuments({ status: { $ne: 'completed' } }).catch(() => 0);
+    const pendingPayments = (await Contract.countDocuments({ paymentStatus: 'unpaid' }).catch(() => 0)) + 
+                           (await Service.countDocuments({ paymentStatus: 'unpaid' }).catch(() => 0));
     
-    const paidContracts = await Contract.find({ paymentStatus: 'paid' });
-    const paidServices = await Service.find({ paymentStatus: 'paid' });
-    const monthlyRevenue = paidContracts.reduce((sum, c) => sum + c.totalFee, 0) + 
-                          paidServices.reduce((sum, s) => sum + s.totalFee, 0);
+    const paidContracts = await Contract.find({ paymentStatus: 'paid' }).catch(() => []);
+    const paidServices = await Service.find({ paymentStatus: 'paid' }).catch(() => []);
+    const monthlyRevenue = (paidContracts || []).reduce((sum, c) => sum + (c.totalFee || 0), 0) + 
+                          (paidServices || []).reduce((sum, s) => sum + (s.totalFee || 0), 0);
     
-    const completedContracts = await Contract.countDocuments({ status: 'completed' });
-    const inProgressContracts = await Contract.countDocuments({ status: 'in-progress' });
-    const pendingContracts = await Contract.countDocuments({ status: 'pending' });
+    const completedContracts = await Contract.countDocuments({ status: 'completed' }).catch(() => 0);
+    const inProgressContracts = await Contract.countDocuments({ status: 'in-progress' }).catch(() => 0);
+    const pendingContracts = await Contract.countDocuments({ status: 'pending' }).catch(() => 0);
     
     const contractsByType = await Contract.aggregate([
       { $group: { _id: '$serviceType', count: { $sum: 1 }, revenue: { $sum: '$totalFee' } } }
-    ]);
+    ]).catch(() => []);
     
     const servicesByType = await Service.aggregate([
       { $group: { _id: '$serviceType', count: { $sum: 1 }, revenue: { $sum: '$totalFee' } } }
-    ]);
+    ]).catch(() => []);
     
     res.render('ceo/dashboard', {
       title: 'CEO Dashboard',
       currentPage: 'dashboard',
-      totalStaff,
-      activeContracts,
-      pendingPayments,
-      monthlyRevenue,
-      completedContracts,
-      inProgressContracts,
-      pendingContracts,
-      contractsByType,
-      servicesByType
+      totalStaff: totalStaff || 0,
+      activeContracts: activeContracts || 0,
+      pendingPayments: pendingPayments || 0,
+      monthlyRevenue: monthlyRevenue || 0,
+      completedContracts: completedContracts || 0,
+      inProgressContracts: inProgressContracts || 0,
+      pendingContracts: pendingContracts || 0,
+      contractsByType: contractsByType || [],
+      servicesByType: servicesByType || []
     });
   } catch (error) {
     console.error('CEO Dashboard error:', error);
-    req.session.error = 'Error loading dashboard';
-    res.redirect('/');
+    res.render('ceo/dashboard', {
+      title: 'CEO Dashboard',
+      currentPage: 'dashboard',
+      totalStaff: 0,
+      activeContracts: 0,
+      pendingPayments: 0,
+      monthlyRevenue: 0,
+      completedContracts: 0,
+      inProgressContracts: 0,
+      pendingContracts: 0,
+      contractsByType: [],
+      servicesByType: [],
+      error: 'Error loading dashboard data'
+    });
   }
 };
 
