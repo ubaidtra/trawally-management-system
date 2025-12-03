@@ -7,30 +7,40 @@ exports.showAttendance = async (req, res) => {
     const selectedDate = date ? new Date(date) : new Date();
     selectedDate.setHours(0, 0, 0, 0);
     
-    const staff = await Staff.find({ status: 'active' });
+    const staff = await Staff.find({ status: 'active' }).catch(() => []);
     const attendance = await Attendance.find({
       date: {
         $gte: selectedDate,
         $lt: new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000)
       }
-    }).populate('staff');
+    }).populate('staff').catch(() => []);
     
     const attendanceMap = {};
-    attendance.forEach(att => {
-      attendanceMap[att.staff._id.toString()] = att;
+    (attendance || []).forEach(att => {
+      if (att.staff && att.staff._id) {
+        attendanceMap[att.staff._id.toString()] = att;
+      }
     });
     
     res.render('admin/attendance', {
       title: 'Attendance Management',
       currentPage: 'attendance',
-      staff,
-      attendanceMap,
+      staff: staff || [],
+      attendanceMap: attendanceMap || {},
       selectedDate: selectedDate.toISOString().split('T')[0]
     });
   } catch (error) {
     console.error('Attendance error:', error);
-    req.session.error = 'Error loading attendance';
-    res.redirect('/admin/dashboard');
+    const selectedDate = new Date();
+    selectedDate.setHours(0, 0, 0, 0);
+    res.render('admin/attendance', {
+      title: 'Attendance Management',
+      currentPage: 'attendance',
+      staff: [],
+      attendanceMap: {},
+      selectedDate: selectedDate.toISOString().split('T')[0],
+      error: 'Error loading attendance data'
+    });
   }
 };
 

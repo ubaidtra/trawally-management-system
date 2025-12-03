@@ -2,16 +2,20 @@ const Staff = require('../models/Staff');
 
 exports.showStaff = async (req, res) => {
   try {
-    const staff = await Staff.find().sort({ dateJoined: -1 });
+    const staff = await Staff.find().sort({ dateJoined: -1 }).catch(() => []);
     res.render('admin/staff', {
       title: 'Staff Management',
       currentPage: 'staff',
-      staff
+      staff: staff || []
     });
   } catch (error) {
     console.error('Staff error:', error);
-    req.session.error = 'Error loading staff';
-    res.redirect('/admin/dashboard');
+    res.render('admin/staff', {
+      title: 'Staff Management',
+      currentPage: 'staff',
+      staff: [],
+      error: 'Error loading staff data'
+    });
   }
 };
 

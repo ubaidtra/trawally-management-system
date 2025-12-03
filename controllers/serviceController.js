@@ -6,31 +6,38 @@ exports.showServices = async (req, res) => {
   try {
     const services = await Service.find()
       .populate('createdBy', 'username')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .catch(() => []);
     
     const servicesWithDeployments = await Promise.all(
-      services.map(async (service) => {
+      (services || []).map(async (service) => {
         const deployments = await Deployment.find({ service: service._id })
-          .populate('staff', 'name specialization');
+          .populate('staff', 'name specialization')
+          .catch(() => []);
         return {
           ...service.toObject(),
-          deployments
+          deployments: deployments || []
         };
       })
     );
     
-    const staff = await Staff.find({ status: 'active' });
+    const staff = await Staff.find({ status: 'active' }).catch(() => []);
     
     res.render('admin/services', {
       title: 'Service Management',
       currentPage: 'services',
-      services: servicesWithDeployments,
-      staff
+      services: servicesWithDeployments || [],
+      staff: staff || []
     });
   } catch (error) {
     console.error('Services error:', error);
-    req.session.error = 'Error loading services';
-    req.session.save(() => res.redirect('/admin/dashboard'));
+    res.render('admin/services', {
+      title: 'Service Management',
+      currentPage: 'services',
+      services: [],
+      staff: [],
+      error: 'Error loading services data'
+    });
   }
 };
 

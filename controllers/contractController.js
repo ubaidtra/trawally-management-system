@@ -6,31 +6,38 @@ exports.showContracts = async (req, res) => {
   try {
     const contracts = await Contract.find()
       .populate('createdBy', 'username')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .catch(() => []);
     
     const contractsWithDeployments = await Promise.all(
-      contracts.map(async (contract) => {
+      (contracts || []).map(async (contract) => {
         const deployments = await Deployment.find({ contract: contract._id })
-          .populate('staff', 'name specialization');
+          .populate('staff', 'name specialization')
+          .catch(() => []);
         return {
           ...contract.toObject(),
-          deployments
+          deployments: deployments || []
         };
       })
     );
     
-    const staff = await Staff.find({ status: 'active' });
+    const staff = await Staff.find({ status: 'active' }).catch(() => []);
     
     res.render('admin/contracts', {
       title: 'Contract Management',
       currentPage: 'contracts',
-      contracts: contractsWithDeployments,
-      staff
+      contracts: contractsWithDeployments || [],
+      staff: staff || []
     });
   } catch (error) {
     console.error('Contracts error:', error);
-    req.session.error = 'Error loading contracts';
-    req.session.save(() => res.redirect('/admin/dashboard'));
+    res.render('admin/contracts', {
+      title: 'Contract Management',
+      currentPage: 'contracts',
+      contracts: [],
+      staff: [],
+      error: 'Error loading contracts data'
+    });
   }
 };
 
