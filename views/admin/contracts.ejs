@@ -59,7 +59,6 @@
                 <td><span class="badge badge-<%= contract.paymentStatus %>"><%= contract.paymentStatus %></span></td>
                 <td>
                   <button class="btn btn-sm btn-primary" onclick="deployStaff('<%= contract._id %>')">Deploy Staff</button>
-                  <button class="btn btn-sm btn-secondary" onclick="updateContract('<%= contract._id %>', '<%= contract.status %>', '<%= contract.paymentStatus %>')">Update</button>
                   <a href="/admin/contracts/<%= contract._id %>/invoice" class="btn btn-sm btn-info" target="_blank">Print Invoice</a>
                   <% if (contract.paymentStatus === 'paid') { %>
                     <a href="/admin/contracts/<%= contract._id %>/receipt" class="btn btn-sm btn-success" target="_blank">Print Receipt</a>
@@ -131,37 +130,6 @@
     </div>
   </div>
   
-  <div id="updateContractModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Update Contract</h2>
-        <span class="close" onclick="toggleModal('updateContractModal')">&times;</span>
-      </div>
-      <form id="updateContractForm" method="POST">
-        <input type="hidden" name="_method" value="PUT">
-        <div class="form-group">
-          <label for="update_status">Status</label>
-          <select id="update_status" name="status" required>
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="update_paymentStatus">Payment Status</label>
-          <select id="update_paymentStatus" name="paymentStatus" required>
-            <option value="paid">Paid</option>
-            <option value="unpaid">Unpaid</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" onclick="toggleModal('updateContractModal')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Update Contract</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  
   <div id="deployStaffModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -210,13 +178,6 @@
   
   <script src="/js/main.js"></script>
   <script>
-    function updateContract(id, status, paymentStatus) {
-      const form = document.getElementById('updateContractForm');
-      form.action = '/admin/contracts/' + id;
-      document.getElementById('update_status').value = status;
-      document.getElementById('update_paymentStatus').value = paymentStatus;
-      toggleModal('updateContractModal');
-    }
     
     async function deployStaff(contractId) {
       const contractIdInput = document.getElementById('deploy_contractId');

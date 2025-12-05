@@ -59,7 +59,6 @@
                 <td><span class="badge badge-<%= service.paymentStatus %>"><%= service.paymentStatus %></span></td>
                 <td>
                   <button class="btn btn-sm btn-primary" onclick="deployStaff('<%= service._id %>', 'service')">Deploy Staff</button>
-                  <button class="btn btn-sm btn-secondary" onclick="updateService('<%= service._id %>', '<%= service.status %>', '<%= service.paymentStatus %>')">Update</button>
                   <a href="/admin/services/<%= service._id %>/invoice" class="btn btn-sm btn-info" target="_blank">Print Invoice</a>
                   <% if (service.paymentStatus === 'paid') { %>
                     <a href="/admin/services/<%= service._id %>/receipt" class="btn btn-sm btn-success" target="_blank">Print Receipt</a>
@@ -127,37 +126,6 @@
     </div>
   </div>
   
-  <div id="updateServiceModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Update Service</h2>
-        <span class="close" onclick="toggleModal('updateServiceModal')">&times;</span>
-      </div>
-      <form id="updateServiceForm" method="POST">
-        <input type="hidden" name="_method" value="PUT">
-        <div class="form-group">
-          <label for="update_status">Status</label>
-          <select id="update_status" name="status" required>
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="update_paymentStatus">Payment Status</label>
-          <select id="update_paymentStatus" name="paymentStatus" required>
-            <option value="paid">Paid</option>
-            <option value="unpaid">Unpaid</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" onclick="toggleModal('updateServiceModal')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Update Service</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  
   <div id="deployStaffModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -206,13 +174,6 @@
   
   <script src="/js/main.js"></script>
   <script>
-    function updateService(id, status, paymentStatus) {
-      const form = document.getElementById('updateServiceForm');
-      form.action = '/admin/services/' + id;
-      document.getElementById('update_status').value = status;
-      document.getElementById('update_paymentStatus').value = paymentStatus;
-      toggleModal('updateServiceModal');
-    }
     
     async function deployStaff(serviceId, type) {
       const contractIdInput = document.getElementById('deploy_contractId');
