@@ -142,7 +142,7 @@
                     <td><%= contract.clientName %></td>
                     <td><%= contract.serviceType %></td>
                     <td>
-                      <% contract.assignedStaff.forEach(staff => { %>
+                      <% contract.assignedStaff && contract.assignedStaff.forEach(staff => { %>
                         <%= staff.name %> (<%= staff.specialization %>)<br>
                       <% }) %>
                     </td>
@@ -172,7 +172,7 @@
                     <td><%= service.clientName %></td>
                     <td><%= service.serviceType %></td>
                     <td>
-                      <% service.assignedStaff.forEach(staff => { %>
+                      <% service.assignedStaff && service.assignedStaff.forEach(staff => { %>
                         <%= staff.name %> (<%= staff.specialization %>)<br>
                       <% }) %>
                     </td>
@@ -184,6 +184,7 @@
             </table>
           </div>
         <% } %>
+        
       </div>
     </div>
   </div>

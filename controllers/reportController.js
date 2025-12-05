@@ -141,11 +141,11 @@ function generateContractHTML(contract) {
       
       <div class="section">
         <h2>Assigned Staff</h2>
-        ${contract.assignedStaff.map(staff => `
+        ${contract.assignedStaff && contract.assignedStaff.length > 0 ? contract.assignedStaff.map(staff => `
           <div class="info-row">
             - ${staff.name} (${staff.specialization})
           </div>
-        `).join('')}
+        `).join('') : '<div class="info-row">No staff assigned yet</div>'}
       </div>
       
       <div class="section">

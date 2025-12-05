@@ -34,8 +34,7 @@
               <th>Start Date</th>
               <th>Status</th>
               <th>Fee</th>
-              <th>Deployed Staff</th>
-              <th>Transport Cost</th>
+              <th>Deployments</th>
               <th>Payment</th>
               <th>Actions</th>
             </tr>
@@ -54,23 +53,17 @@
                     <span class="badge badge-info"><%= contract.deployments.length %> staff</span>
                     <button class="btn btn-sm btn-link" onclick="viewDeployments('<%= contract._id %>')">View</button>
                   <% } else { %>
-                    <span class="text-muted">None</span>
+                    <span class="badge badge-secondary">None</span>
                   <% } %>
-                </td>
-                <td>
-                  <% 
-                    let totalTransportCost = 0;
-                    if (contract.deployments && contract.deployments.length > 0) {
-                      totalTransportCost = contract.deployments.reduce((sum, d) => sum + (d.transportationCost || 0), 0);
-                    }
-                  %>
-                  D <%= totalTransportCost.toFixed(2) %>
                 </td>
                 <td><span class="badge badge-<%= contract.paymentStatus %>"><%= contract.paymentStatus %></span></td>
                 <td>
                   <button class="btn btn-sm btn-primary" onclick="deployStaff('<%= contract._id %>')">Deploy Staff</button>
                   <button class="btn btn-sm btn-secondary" onclick="updateContract('<%= contract._id %>', '<%= contract.status %>', '<%= contract.paymentStatus %>')">Update</button>
                   <a href="/admin/contracts/<%= contract._id %>/print" class="btn btn-sm btn-info" target="_blank">Print</a>
+                  <form action="/admin/contracts/<%= contract._id %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this contract? This will also delete all associated deployments. This action cannot be undone.')">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                  </form>
                 </td>
               </tr>
             <% }) %>
@@ -81,53 +74,51 @@
   </div>
   
   <div id="createContractModal" class="modal">
-    <div class="modal-content modal-large">
+    <div class="modal-content">
       <div class="modal-header">
         <h2>Create New Contract</h2>
         <span class="close" onclick="toggleModal('createContractModal')">&times;</span>
       </div>
       <form action="/admin/contracts" method="POST">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="clientName">Client Name</label>
-            <input type="text" id="clientName" name="clientName" required>
-          </div>
-          <div class="form-group">
-            <label for="clientPhone">Client Phone</label>
-            <input type="tel" id="clientPhone" name="clientPhone" required>
-          </div>
-          <div class="form-group">
-            <label for="clientAddress">Client Address</label>
-            <input type="text" id="clientAddress" name="clientAddress" required>
-          </div>
-          <div class="form-group">
-            <label for="serviceType">Service Type</label>
-            <select id="serviceType" name="serviceType" required>
-              <option value="Electrical Installation">Electrical Installation</option>
-              <option value="Water Pump Installation">Water Pump Installation</option>
-              <option value="Borehole Drilling">Borehole Drilling</option>
-              <option value="Water Tank Installation">Water Tank Installation</option>
-              <option value="Home Services">Home Services</option>
-              <option value="Office Installation">Office Installation</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="startDate">Start Date</label>
-            <input type="date" id="startDate" name="startDate" required>
-          </div>
-          <div class="form-group">
-            <label for="endDate">End Date</label>
-            <input type="date" id="endDate" name="endDate">
-          </div>
-          <div class="form-group">
-            <label for="totalFee">Total Fee (Dalasi)</label>
-            <input type="number" id="totalFee" name="totalFee" required min="0">
-          </div>
+        <div class="form-group">
+          <label for="clientName">Client Name</label>
+          <input type="text" id="clientName" name="clientName" required>
+        </div>
+        <div class="form-group">
+          <label for="clientPhone">Client Phone</label>
+          <input type="tel" id="clientPhone" name="clientPhone" required>
+        </div>
+        <div class="form-group">
+          <label for="clientAddress">Client Address</label>
+          <textarea id="clientAddress" name="clientAddress" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="serviceType">Service Type</label>
+          <select id="serviceType" name="serviceType" required>
+            <option value="Electrical Installation">Electrical Installation</option>
+            <option value="Water Pump Installation">Water Pump Installation</option>
+            <option value="Borehole Drilling">Borehole Drilling</option>
+            <option value="Water Tank Installation">Water Tank Installation</option>
+            <option value="Home Services">Home Services</option>
+            <option value="Office Installation">Office Installation</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="description">Description</label>
-          <textarea id="description" name="description" rows="3" required></textarea>
+          <textarea id="description" name="description" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="startDate">Start Date</label>
+          <input type="date" id="startDate" name="startDate" required>
+        </div>
+        <div class="form-group">
+          <label for="endDate">End Date (Optional)</label>
+          <input type="date" id="endDate" name="endDate">
+        </div>
+        <div class="form-group">
+          <label for="totalFee">Total Fee</label>
+          <input type="number" id="totalFee" name="totalFee" step="0.01" required>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="toggleModal('createContractModal')">Cancel</button>
@@ -156,13 +147,13 @@
         <div class="form-group">
           <label for="update_paymentStatus">Payment Status</label>
           <select id="update_paymentStatus" name="paymentStatus" required>
-            <option value="unpaid">Unpaid</option>
             <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
           </select>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="toggleModal('updateContractModal')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Update</button>
+          <button type="submit" class="btn btn-primary">Update Contract</button>
         </div>
       </form>
     </div>
@@ -174,275 +165,100 @@
         <h2>Deploy Staff</h2>
         <span class="close" onclick="toggleModal('deployStaffModal')">&times;</span>
       </div>
-      <form id="deployStaffForm" method="POST" action="/deployment" onsubmit="return validateDeploymentForm()">
+      <form action="/deployment" method="POST">
         <input type="hidden" id="deploy_contractId" name="contractId" value="">
         <input type="hidden" id="deploy_serviceId" name="serviceId" value="" style="display: none;">
         <div class="form-group">
-          <label for="deploy_staffId">Staff (Select multiple)</label>
-          <select id="deploy_staffId" name="staffId" multiple required style="min-height: 120px;">
+          <label for="deploymentDate">Deployment Date</label>
+          <input type="date" id="deploymentDate" name="deploymentDate" required>
+        </div>
+        <div class="form-group">
+          <label for="staffId">Select Staff</label>
+          <select id="staffId" name="staffId" multiple required>
             <% staff.forEach(member => { %>
               <option value="<%= member._id %>"><%= member.name %> (<%= member.specialization %>)</option>
             <% }) %>
           </select>
-          <small class="form-text">Hold Ctrl/Cmd to select multiple staff members</small>
+          <small>Hold Ctrl/Cmd to select multiple staff</small>
         </div>
         <div class="form-group">
-          <label for="deploy_deploymentDate">Deployment Date</label>
-          <input type="date" id="deploy_deploymentDate" name="deploymentDate" required>
-        </div>
-        <div class="form-group">
-          <label for="deploy_transportationMethod">Transportation Method</label>
-          <select id="deploy_transportationMethod" name="transportationMethod" required>
+          <label for="transportationMethod">Transportation Method</label>
+          <select id="transportationMethod" name="transportationMethod" required>
             <option value="public-transport">Public Transport</option>
-            <option value="personal-vehicle">Personal Vehicle (Fuel)</option>
-            <option value="company-vehicle">Company Vehicle (Fuel)</option>
+            <option value="personal-vehicle">Personal Vehicle</option>
+            <option value="company-vehicle">Company Vehicle</option>
           </select>
         </div>
         <div class="form-group">
-          <label for="deploy_transportationCost">Transportation Cost per Staff (Dalasi)</label>
-          <input type="number" id="deploy_transportationCost" name="transportationCost" min="0" step="0.01" value="0" required>
-          <small class="form-text">This cost will be applied to each selected staff member</small>
+          <label for="transportationCost">Transportation Cost</label>
+          <input type="number" id="transportationCost" name="transportationCost" step="0.01" value="0" required>
         </div>
         <div class="form-group">
-          <label for="deploy_notes">Notes (Optional)</label>
-          <textarea id="deploy_notes" name="notes" rows="2"></textarea>
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes"></textarea>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="toggleModal('deployStaffModal')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Deploy Selected Staff</button>
+          <button type="submit" class="btn btn-primary">Deploy Staff</button>
         </div>
       </form>
     </div>
   </div>
-
-  <div id="viewDeploymentsModal" class="modal">
-    <div class="modal-content modal-large">
-      <div class="modal-header">
-        <h2>Staff Deployments</h2>
-        <span class="close" onclick="toggleModal('viewDeploymentsModal')">&times;</span>
-      </div>
-      <div id="deploymentsList"></div>
-    </div>
-  </div>
-
-  <div id="editDeploymentModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Edit Deployment</h2>
-        <span class="close" onclick="toggleModal('editDeploymentModal')">&times;</span>
-      </div>
-      <form id="editDeploymentForm" method="POST">
-        <input type="hidden" name="_method" value="PUT">
-        <div class="form-group">
-          <label for="edit_transportationMethod">Transportation Method</label>
-          <select id="edit_transportationMethod" name="transportationMethod" required>
-            <option value="public-transport">Public Transport</option>
-            <option value="personal-vehicle">Personal Vehicle (Fuel)</option>
-            <option value="company-vehicle">Company Vehicle (Fuel)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="edit_transportationCost">Transportation Cost (Dalasi)</label>
-          <input type="number" id="edit_transportationCost" name="transportationCost" min="0" step="0.01" required>
-        </div>
-        <div class="form-group">
-          <label for="edit_deploymentStatus">Status</label>
-          <select id="edit_deploymentStatus" name="status" required>
-            <option value="deployed">Deployed</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="edit_deploymentNotes">Notes (Optional)</label>
-          <textarea id="edit_deploymentNotes" name="notes" rows="2"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" onclick="toggleModal('editDeploymentModal')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Update Deployment</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
+  
   <script src="/js/main.js"></script>
   <script>
     function updateContract(id, status, paymentStatus) {
       const form = document.getElementById('updateContractForm');
-      const statusSelect = document.getElementById('update_status');
-      const paymentSelect = document.getElementById('update_paymentStatus');
-      
-      if (!form || !statusSelect || !paymentSelect) {
-        console.error('Update form elements not found');
-        return;
-      }
-      
       form.action = '/admin/contracts/' + id;
-      statusSelect.value = status;
-      paymentSelect.value = paymentStatus;
+      document.getElementById('update_status').value = status;
+      document.getElementById('update_paymentStatus').value = paymentStatus;
       toggleModal('updateContractModal');
     }
-
+    
     async function deployStaff(contractId) {
       const contractIdInput = document.getElementById('deploy_contractId');
       const serviceIdInput = document.getElementById('deploy_serviceId');
-      const deploymentDateInput = document.getElementById('deploy_deploymentDate');
-      const staffSelect = document.getElementById('deploy_staffId');
-      const transportMethodSelect = document.getElementById('deploy_transportationMethod');
-      const transportCostInput = document.getElementById('deploy_transportationCost');
-      const notesInput = document.getElementById('deploy_notes');
+      const deploymentDateInput = document.getElementById('deploymentDate');
+      const staffSelect = document.getElementById('staffId');
+      const transportMethodSelect = document.getElementById('transportationMethod');
+      const transportCostInput = document.getElementById('transportationCost');
       
       if (!contractIdInput || !deploymentDateInput || !staffSelect || !transportMethodSelect || !transportCostInput) {
-        console.error('Deploy staff form elements not found');
-        alert('Error: Form elements not found. Please refresh the page.');
+        alert('Form elements not found');
         return;
       }
       
-      contractIdInput.value = contractId;
       if (serviceIdInput) {
         serviceIdInput.value = '';
       }
-      deploymentDateInput.valueAsDate = new Date();
       
-      Array.from(staffSelect.options).forEach(option => {
-        option.selected = false;
-        option.disabled = false;
-        option.style.color = '';
-      });
-      
-      transportMethodSelect.value = 'public-transport';
-      transportCostInput.value = '0';
-      if (notesInput) {
-        notesInput.value = '';
-      }
-      
-      try {
-        const response = await fetch(`/deployment/api?contractId=${contractId}`);
-        if (response.ok) {
-          const deployments = await response.json();
-          const deployedStaffIds = deployments.map(d => d.staff._id.toString());
-          
-          Array.from(staffSelect.options).forEach(option => {
-            if (deployedStaffIds.includes(option.value)) {
-              option.disabled = true;
-              option.style.color = '#999';
-            } else {
-              option.disabled = false;
-              option.style.color = '';
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error loading existing deployments:', error);
-      }
-      
+      contractIdInput.value = contractId;
+      deploymentDateInput.value = new Date().toISOString().split('T')[0];
       toggleModal('deployStaffModal');
     }
-
-    function validateDeploymentForm() {
-      const staffSelect = document.getElementById('deploy_staffId');
-      const selectedStaff = Array.from(staffSelect.options).filter(opt => opt.selected && !opt.disabled);
-      
-      if (selectedStaff.length === 0) {
-        alert('Please select at least one staff member');
-        return false;
-      }
-      
-      const contractId = document.getElementById('deploy_contractId').value;
-      const serviceId = document.getElementById('deploy_serviceId') ? document.getElementById('deploy_serviceId').value : '';
-      
-      if (!contractId && !serviceId) {
-        alert('Contract or Service ID is missing');
-        return false;
-      }
-      
-      if (contractId && serviceId) {
-        alert('Both Contract and Service cannot be set');
-        return false;
-      }
-      
-      return true;
-    }
-
+    
     async function viewDeployments(contractId) {
       try {
         const response = await fetch(`/deployment/api?contractId=${contractId}`);
         const deployments = await response.json();
         
-        const transportLabels = {
-          'public-transport': 'Public Transport',
-          'personal-vehicle': 'Personal Vehicle',
-          'company-vehicle': 'Company Vehicle'
-        };
-
-        let totalCost = 0;
-        let html = '<div class="table-container"><table class="data-table"><thead><tr><th>Staff</th><th>Deployment Date</th><th>Transportation</th><th>Cost</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
-        
         if (deployments.length === 0) {
-          html += '<tr><td colspan="6" class="text-center">No deployments yet</td></tr>';
-        } else {
-          deployments.forEach(deployment => {
-            totalCost += deployment.transportationCost || 0;
-            html += `<tr>
-              <td>${deployment.staff.name} (${deployment.staff.specialization})</td>
-              <td>${new Date(deployment.deploymentDate).toLocaleDateString()}</td>
-              <td>${transportLabels[deployment.transportationMethod] || deployment.transportationMethod}</td>
-              <td>D ${(deployment.transportationCost || 0).toFixed(2)}</td>
-              <td><span class="badge badge-${deployment.status}">${deployment.status.charAt(0).toUpperCase() + deployment.status.slice(1)}</span></td>
-              <td>
-                <button class="btn btn-sm btn-secondary" onclick="editDeployment('${deployment._id}', '${deployment.transportationMethod}', '${deployment.transportationCost || 0}', '${deployment.status}', '${(deployment.notes || '').replace(/'/g, "\\'")}')">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteDeployment('${deployment._id}')">Remove</button>
-              </td>
-            </tr>`;
-          });
+          alert('No deployments found for this contract');
+          return;
         }
         
-        html += '</tbody></table></div>';
-        if (deployments.length > 0) {
-          html += `<div style="margin-top: 15px; padding: 10px; background: #f0f0f0; border-radius: 5px;">
-            <strong>Total Transportation Cost: D ${totalCost.toFixed(2)}</strong>
-          </div>`;
-        }
-        document.getElementById('deploymentsList').innerHTML = html;
-        toggleModal('viewDeploymentsModal');
-      } catch (error) {
-        console.error('Error loading deployments:', error);
-        alert('Error loading deployments');
-      }
-    }
-
-    function editDeployment(id, transportationMethod, transportationCost, status, notes) {
-      document.getElementById('editDeploymentForm').action = '/deployment/' + id;
-      document.getElementById('edit_transportationMethod').value = transportationMethod;
-      document.getElementById('edit_transportationCost').value = transportationCost;
-      document.getElementById('edit_deploymentStatus').value = status;
-      document.getElementById('edit_deploymentNotes').value = notes || '';
-      toggleModal('editDeploymentModal');
-    }
-
-    async function deleteDeployment(id) {
-      if (!confirm('Are you sure you want to remove this deployment?')) return;
-      
-      try {
-        const response = await fetch(`/deployment/${id}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' }
+        let message = 'Deployments:\n\n';
+        deployments.forEach(d => {
+          message += `Staff: ${d.staff ? d.staff.name : 'N/A'}\n`;
+          message += `Date: ${new Date(d.deploymentDate).toLocaleDateString()}\n`;
+          message += `Transport: ${d.transportationMethod}\n`;
+          message += `Cost: D ${d.transportationCost}\n`;
+          message += `Status: ${d.status}\n\n`;
         });
-        
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            location.reload();
-          } else {
-            alert(result.error || 'Error removing deployment');
-          }
-        } else {
-          const error = await response.json().catch(() => ({ error: 'Error removing deployment' }));
-          alert(error.error || 'Error removing deployment');
-        }
+        alert(message);
       } catch (error) {
-        console.error('Error deleting deployment:', error);
-        alert('Error removing deployment');
+        console.error('Error fetching deployments:', error);
+        alert('Error loading deployments');
       }
     }
   </script>

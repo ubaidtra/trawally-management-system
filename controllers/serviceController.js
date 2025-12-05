@@ -50,8 +50,8 @@ exports.createService = async (req, res) => {
       return req.session.save(() => res.redirect('/admin/services'));
     }
     
-    if (isNaN(totalFee) || totalFee < 0) {
-      req.session.error = 'Total fee must be a valid positive number';
+    if (isNaN(totalFee) || parseFloat(totalFee) < 0) {
+      req.session.error = 'Total fee must be a valid number';
       return req.session.save(() => res.redirect('/admin/services'));
     }
     
@@ -61,7 +61,7 @@ exports.createService = async (req, res) => {
       clientAddress: clientAddress.trim(),
       serviceType,
       description: description.trim(),
-      serviceDate,
+      serviceDate: new Date(serviceDate),
       totalFee: parseFloat(totalFee),
       createdBy: req.session.user.id
     });
@@ -94,13 +94,25 @@ exports.updateService = async (req, res) => {
 exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    if (!id) {
+      req.session.error = 'Service ID is required';
+      return req.session.save(() => res.redirect('/admin/services'));
+    }
+    
+    const service = await Service.findById(id);
+    if (!service) {
+      req.session.error = 'Service not found';
+      return req.session.save(() => res.redirect('/admin/services'));
+    }
+    
     await Deployment.deleteMany({ service: id });
     await Service.findByIdAndDelete(id);
     req.session.success = 'Service deleted successfully';
     req.session.save(() => res.redirect('/admin/services'));
   } catch (error) {
     console.error('Delete service error:', error);
-    req.session.error = 'Error deleting service';
+    req.session.error = 'Error deleting service: ' + (error.message || 'Unknown error');
     req.session.save(() => res.redirect('/admin/services'));
   }
 };
