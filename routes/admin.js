@@ -5,7 +5,7 @@ const staffController = require('../controllers/staffController');
 const attendanceController = require('../controllers/attendanceController');
 const contractController = require('../controllers/contractController');
 const serviceController = require('../controllers/serviceController');
-const reportController = require('../controllers/reportController');
+const invoiceController = require('../controllers/invoiceController');
 const { isAuthenticated } = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 
@@ -26,12 +26,13 @@ router.get('/contracts', contractController.showContracts);
 router.post('/contracts', contractController.createContract);
 router.put('/contracts/:id', contractController.updateContract);
 router.delete('/contracts/:id', contractController.deleteContract);
-router.get('/contracts/:id/print', reportController.printContractAgreement);
+router.get('/contracts/:id/invoice', invoiceController.printContractInvoice);
 
 router.get('/services', serviceController.showServices);
 router.post('/services', serviceController.createService);
 router.put('/services/:id', serviceController.updateService);
 router.delete('/services/:id', serviceController.deleteService);
+router.get('/services/:id/invoice', invoiceController.printServiceInvoice);
 
 module.exports = router;
 
