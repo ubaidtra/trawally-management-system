@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <div class="main-content">
+      <div class="content-header">
+        <h1>Services Review</h1>
+        <div class="header-actions">
+          <button class="btn btn-info" onclick="exportToCSV('servicesTable', 'services.csv')">Export CSV</button>
+        </div>
+      </div>
+      
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (success) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
+
+      <div class="search-filter-bar">
+        <input type="text" class="search-input" data-table="servicesTable" placeholder="Search services...">
+        <select class="filter-select" data-table="servicesTable" data-filter="status">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="archived">Archived</option>
+        </select>
+        <select class="filter-select" data-table="servicesTable" data-filter="payment">
+          <option value="">All Payments</option>
+          <option value="paid">Paid</option>
+          <option value="unpaid">Unpaid</option>
+        </select>
+        <span class="table-count" data-count="servicesTable"><%= services.length %> items</span>
+      </div>
+      
+      <div class="table-container">
+        <table class="data-table" id="servicesTable">
+          <thead>
+            <tr>
+              <th data-sort="client" data-table="servicesTable">Client Name</th>
+              <th data-sort="phone" data-table="servicesTable">Phone</th>
+              <th data-sort="service" data-table="servicesTable">Service Type</th>
+              <th data-sort="date" data-table="servicesTable">Service Date</th>
+              <th data-sort="status" data-table="servicesTable">Status</th>
+              <th data-sort="fee" data-table="servicesTable">Fee</th>
+              <th>Deployments</th>
+              <th data-filter="payment">Payment</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% services.forEach(service => { %>
+              <tr>
+                <td data-filter="client"><%= service.clientName %></td>
+                <td data-filter="phone"><%= service.clientPhone %></td>
+                <td data-filter="service"><%= service.serviceType %></td>
+                <td data-filter="date"><%= new Date(service.serviceDate).toLocaleDateString() %></td>
+                <td data-filter="status">
+                  <span class="badge badge-<%= service.status %>"><%= service.status %></span>
+                </td>
+                <td data-filter="fee">D <%= service.totalFee.toLocaleString() %></td>
+                <td>
+                  <% if (service.deployments && service.deployments.length > 0) { %>
+                    <div class="deployment-info">
+                      <span class="badge badge-info"><%= service.deployments.length %> staff</span>
+                      <button class="btn btn-sm btn-link" onclick="viewDeployments('<%= service._id %>')" title="View Deployments">View</button>
+                    </div>
+                  <% } else { %>
+                    <span class="badge badge-secondary">None</span>
+                  <% } %>
+                </td>
+                <td data-filter="payment">
+                  <span class="badge badge-<%= service.paymentStatus %>"><%= service.paymentStatus %></span>
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <div class="btn-group-primary">
+                      <a href="/ceo/services/<%= service._id %>" class="btn btn-sm btn-info" title="View Details">View</a>
+                      <a href="/ceo/services/<%= service._id %>/invoice" target="_blank" class="btn btn-sm btn-secondary" title="Print Invoice">Invoice</a>
+                      <a href="/ceo/services/<%= service._id %>/receipt" target="_blank" class="btn btn-sm btn-secondary" title="Print Receipt">Receipt</a>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div id="deploymentsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Deployed Staff</h2>
+        <span class="close" onclick="toggleModal('deploymentsModal')">&times;</span>
+      </div>
+      <div id="deploymentsContent"></div>
+    </div>
+  </div>
+  
+  <script src="/js/main.js"></script>
+  <script>
+    async function viewDeployments(serviceId) {
+      try {
+        const response = await fetch(`/deployment?serviceId=${serviceId}`);
+        const deployments = await response.json();
+        
+        let html = '<div class="table-container"><table class="data-table"><thead><tr><th>Staff Name</th><th>Specialization</th><th>Deployment Date</th><th>Transportation</th><th>Cost</th><th>Status</th></tr></thead><tbody>';
+        
+        if (deployments.length === 0) {
+          html += '<tr><td colspan="6">No staff deployed</td></tr>';
+        } else {
+          deployments.forEach(d => {
+            html += `<tr>
+              <td>${d.staff ? d.staff.name : 'N/A'}</td>
+              <td>${d.staff ? d.staff.specialization : 'N/A'}</td>
+              <td>${new Date(d.deploymentDate).toLocaleDateString()}</td>
+              <td>${d.transportationMethod || 'N/A'}</td>
+              <td>D ${(d.transportationCost || 0).toLocaleString()}</td>
+              <td><span class="badge badge-${d.status || 'deployed'}">${d.status || 'deployed'}</span></td>
+            </tr>`;
+          });
+        }
+        
+        html += '</tbody></table></div>';
+        document.getElementById('deploymentsContent').innerHTML = html;
+        toggleModal('deploymentsModal');
+      } catch (error) {
+        console.error('Error loading deployments:', error);
+        alert('Error loading deployments');
+      }
+    }
+  </script>
+</body>
+</html>
+

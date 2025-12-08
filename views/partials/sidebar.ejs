@@ -54,6 +54,16 @@
       
       <% if (user.role === 'ceo') { %>
         <li>
+          <a href="/ceo/contracts" class="<%= currentPage === 'contracts' ? 'active' : '' %>">
+            Contracts
+          </a>
+        </li>
+        <li>
+          <a href="/ceo/services" class="<%= currentPage === 'services' ? 'active' : '' %>">
+            Services
+          </a>
+        </li>
+        <li>
           <a href="/ceo/reports" class="<%= currentPage === 'reports' ? 'active' : '' %>">
             Reports
           </a>
