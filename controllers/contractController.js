@@ -159,7 +159,7 @@ exports.updateStatus = async (req, res) => {
       return req.session.save(() => res.redirect('/admin/contracts'));
     }
     
-    if (!status || !['pending', 'in-progress', 'completed', 'cancelled'].includes(status)) {
+    if (!status || !['pending', 'in-progress', 'completed', 'cancelled', 'archived'].includes(status)) {
       req.session.error = 'Invalid status';
       return req.session.save(() => res.redirect('/admin/contracts'));
     }
@@ -170,7 +170,15 @@ exports.updateStatus = async (req, res) => {
       return req.session.save(() => res.redirect('/admin/contracts'));
     }
     
-    await Contract.findByIdAndUpdate(id, { status }, { new: true, runValidators: true });
+    const updateData = { status };
+    if (status === 'completed' && !contract.completedDate) {
+      updateData.completedDate = new Date();
+    }
+    if (status === 'archived' && !contract.archivedDate) {
+      updateData.archivedDate = new Date();
+    }
+    
+    await Contract.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     req.session.success = `Contract status updated to ${status}`;
     req.session.save(() => res.redirect('/admin/contracts'));
   } catch (error) {

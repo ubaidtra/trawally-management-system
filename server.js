@@ -5,6 +5,7 @@ const MongoStore = require('connect-mongo');
 const methodOverride = require('method-override');
 const path = require('path');
 const connectDB = require('./config/database');
+const { startArchiveScheduler } = require('./utils/archiveScheduler');
 
 const app = express();
 
@@ -112,6 +113,7 @@ if (!isProduction) {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    startArchiveScheduler();
   });
 }
 

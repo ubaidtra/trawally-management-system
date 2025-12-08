@@ -33,8 +33,14 @@ const contractSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'in-progress', 'completed', 'cancelled'],
+    enum: ['pending', 'in-progress', 'completed', 'cancelled', 'archived'],
     default: 'pending'
+  },
+  completedDate: {
+    type: Date
+  },
+  archivedDate: {
+    type: Date
   },
   totalFee: {
     type: Number,
@@ -51,6 +57,18 @@ const contractSchema = new mongoose.Schema({
     ref: 'User'
   }
 }, { timestamps: true });
+
+contractSchema.pre('save', function(next) {
+  if (this.isModified('status')) {
+    if (this.status === 'completed' && !this.completedDate) {
+      this.completedDate = new Date();
+    }
+    if (this.status === 'archived' && !this.archivedDate) {
+      this.archivedDate = new Date();
+    }
+  }
+  next();
+});
 
 module.exports = mongoose.model('Contract', contractSchema);
 

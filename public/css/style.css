@@ -748,6 +748,11 @@ body {
 }
 
 .badge-cancelled {
+  background-color: #ef4444;
+  color: var(--white);
+}
+
+.badge-archived {
   background-color: #6b7280;
   color: var(--white);
 }

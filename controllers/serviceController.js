@@ -132,7 +132,7 @@ exports.updateStatus = async (req, res) => {
       return req.session.save(() => res.redirect('/admin/services'));
     }
     
-    if (!status || !['pending', 'in-progress', 'completed', 'cancelled'].includes(status)) {
+    if (!status || !['pending', 'in-progress', 'completed', 'cancelled', 'archived'].includes(status)) {
       req.session.error = 'Invalid status';
       return req.session.save(() => res.redirect('/admin/services'));
     }
@@ -143,7 +143,15 @@ exports.updateStatus = async (req, res) => {
       return req.session.save(() => res.redirect('/admin/services'));
     }
     
-    await Service.findByIdAndUpdate(id, { status }, { new: true, runValidators: true });
+    const updateData = { status };
+    if (status === 'completed' && !service.completedDate) {
+      updateData.completedDate = new Date();
+    }
+    if (status === 'archived' && !service.archivedDate) {
+      updateData.archivedDate = new Date();
+    }
+    
+    await Service.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     req.session.success = `Service status updated to ${status}`;
     req.session.save(() => res.redirect('/admin/services'));
   } catch (error) {
