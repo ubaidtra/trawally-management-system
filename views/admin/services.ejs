@@ -211,15 +211,18 @@
         </div>
         <div class="form-group">
           <label for="transportationMethod">Transportation Method</label>
-          <select id="transportationMethod" name="transportationMethod" required>
+          <select id="transportationMethod" name="transportationMethod" required onchange="updateTransportationNote()">
             <option value="public-transport">Public Transport</option>
             <option value="personal-vehicle">Personal Vehicle</option>
             <option value="company-vehicle">Company Vehicle</option>
           </select>
         </div>
         <div class="form-group">
-          <label for="transportationCost">Transportation Cost</label>
+          <label for="transportationCost" id="transportationCostLabel">Transportation Cost</label>
           <input type="number" id="transportationCost" name="transportationCost" step="0.01" value="0" required>
+          <small id="transportationNote" style="display: none; color: #3b82f6; margin-top: 0.5rem; display: block;">
+            <strong>Note:</strong> When using Personal/Company Vehicle, the cost will be shared equally among all selected staff members.
+          </small>
         </div>
         <div class="form-group">
           <label for="notes">Notes</label>
@@ -354,6 +357,35 @@
         alert('Error updating status. Please try again.');
       }
     }
+
+    function updateTransportationNote() {
+      const method = document.getElementById('transportationMethod').value;
+      const note = document.getElementById('transportationNote');
+      const label = document.getElementById('transportationCostLabel');
+      const staffSelect = document.getElementById('staffId');
+      const selectedCount = staffSelect ? staffSelect.selectedOptions.length : 0;
+      
+      if (method === 'personal-vehicle' || method === 'company-vehicle') {
+        note.style.display = 'block';
+        if (selectedCount > 0) {
+          note.innerHTML = `<strong>Note:</strong> When using ${method === 'personal-vehicle' ? 'Personal' : 'Company'} Vehicle, the total cost will be shared equally among all ${selectedCount} selected staff member${selectedCount > 1 ? 's' : ''}.`;
+        } else {
+          note.innerHTML = `<strong>Note:</strong> When using ${method === 'personal-vehicle' ? 'Personal' : 'Company'} Vehicle, the cost will be shared equally among all selected staff members.`;
+        }
+        label.textContent = 'Total Transportation Cost (Shared)';
+      } else {
+        note.style.display = 'none';
+        label.textContent = 'Transportation Cost';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const staffSelect = document.getElementById('staffId');
+      if (staffSelect) {
+        staffSelect.addEventListener('change', updateTransportationNote);
+      }
+      updateTransportationNote();
+    });
   </script>
 </body>
 </html>

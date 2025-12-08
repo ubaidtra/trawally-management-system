@@ -96,13 +96,20 @@ exports.createDeployment = async (req, res) => {
     }
     
     const deploymentDateValue = deploymentDate ? new Date(deploymentDate) : new Date();
+    const totalTransportCost = parseFloat(transportationCost) || 0;
+    
+    const isVehicleTransport = transportationMethod === 'personal-vehicle' || transportationMethod === 'company-vehicle';
+    const costPerStaff = isVehicleTransport && staffIds.length > 0 
+      ? totalTransportCost / staffIds.length 
+      : totalTransportCost;
+    
     const deployments = staffIds.map(sId => ({
       contract: finalContractId,
       service: finalServiceId,
       staff: sId,
       deploymentDate: deploymentDateValue,
       transportationMethod,
-      transportationCost: parseFloat(transportationCost) || 0,
+      transportationCost: costPerStaff,
       notes: notes ? notes.trim() : '',
       deployedBy: req.session.user.id
     }));
