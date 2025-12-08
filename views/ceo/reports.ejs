@@ -13,7 +13,10 @@
     <div class="main-content">
       <div class="content-header">
         <h1>Reports</h1>
-        <button class="btn btn-primary" onclick="window.print()">Print Report</button>
+        <div class="header-actions">
+          <button class="btn btn-info" onclick="exportCurrentReport()">Export CSV</button>
+          <button class="btn btn-primary" onclick="window.print()">Print Report</button>
+        </div>
       </div>
       
       <% if (error) { %>
@@ -190,6 +193,25 @@
   </div>
   
   <script src="/js/main.js"></script>
+  <script>
+    function exportCurrentReport() {
+      const reportType = '<%= reportType %>';
+      const tables = document.querySelectorAll('.data-table');
+      if (tables.length > 0) {
+        const filename = `${reportType}_report_<%= startDate %>_to_<%= endDate %>.csv`;
+        exportToCSV(tables[0].id || 'reportTable', filename);
+      } else {
+        alert('No data table found to export');
+      }
+    }
+    
+    const reportTables = document.querySelectorAll('.data-table');
+    reportTables.forEach((table, index) => {
+      if (!table.id) {
+        table.id = `reportTable${index}`;
+      }
+    });
+  </script>
 </body>
 </html>
 

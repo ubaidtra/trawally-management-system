@@ -13,7 +13,10 @@
     <div class="main-content">
       <div class="content-header">
         <h1>Service Management</h1>
-        <button class="btn btn-primary" onclick="toggleModal('createServiceModal')">Create New Service</button>
+        <div class="header-actions">
+          <button class="btn btn-info" onclick="exportToCSV('servicesTable', 'services.csv')">Export CSV</button>
+          <button class="btn btn-primary" onclick="toggleModal('createServiceModal')">Create New Service</button>
+        </div>
       </div>
       
       <% if (error) { %>
@@ -23,31 +26,47 @@
       <% if (success) { %>
         <div class="alert alert-success"><%= success %></div>
       <% } %>
+
+      <div class="search-filter-bar">
+        <input type="text" class="search-input" data-table="servicesTable" placeholder="Search services...">
+        <select class="filter-select" data-table="servicesTable" data-filter="status">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select class="filter-select" data-table="servicesTable" data-filter="payment">
+          <option value="">All Payments</option>
+          <option value="paid">Paid</option>
+          <option value="unpaid">Unpaid</option>
+        </select>
+        <span class="table-count" data-count="servicesTable"><%= services.length %> items</span>
+      </div>
       
       <div class="table-container">
-        <table class="data-table">
+        <table class="data-table" id="servicesTable">
           <thead>
             <tr>
-              <th>Client Name</th>
-              <th>Phone</th>
-              <th>Service Type</th>
-              <th>Service Date</th>
-              <th>Status</th>
-              <th>Fee</th>
+              <th data-sort="client" data-table="servicesTable">Client Name</th>
+              <th data-sort="phone" data-table="servicesTable">Phone</th>
+              <th data-sort="service" data-table="servicesTable">Service Type</th>
+              <th data-sort="date" data-table="servicesTable">Service Date</th>
+              <th data-filter="status">Status</th>
+              <th data-sort="fee" data-table="servicesTable">Fee</th>
               <th>Deployments</th>
-              <th>Payment</th>
+              <th data-filter="payment">Payment</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <% services.forEach(service => { %>
               <tr>
-                <td><%= service.clientName %></td>
-                <td><%= service.clientPhone %></td>
-                <td><%= service.serviceType %></td>
-                <td><%= new Date(service.serviceDate).toLocaleDateString() %></td>
-                <td><span class="badge badge-<%= service.status %>"><%= service.status %></span></td>
-                <td>D <%= service.totalFee %></td>
+                <td data-filter="client"><%= service.clientName %></td>
+                <td data-filter="phone"><%= service.clientPhone %></td>
+                <td data-filter="service"><%= service.serviceType %></td>
+                <td data-filter="date"><%= new Date(service.serviceDate).toLocaleDateString() %></td>
+                <td data-filter="status"><span class="badge badge-<%= service.status %>"><%= service.status %></span></td>
+                <td data-filter="fee">D <%= service.totalFee %></td>
                 <td>
                   <% if (service.deployments && service.deployments.length > 0) { %>
                     <span class="badge badge-info"><%= service.deployments.length %> staff</span>
@@ -56,7 +75,7 @@
                     <span class="badge badge-secondary">None</span>
                   <% } %>
                 </td>
-                <td><span class="badge badge-<%= service.paymentStatus %>"><%= service.paymentStatus %></span></td>
+                <td data-filter="payment"><span class="badge badge-<%= service.paymentStatus %>"><%= service.paymentStatus %></span></td>
                 <td>
                   <button class="btn btn-sm btn-primary" onclick="deployStaff('<%= service._id %>', 'service')">Deploy Staff</button>
                   <a href="/admin/services/<%= service._id %>/invoice" class="btn btn-sm btn-info" target="_blank">Print Invoice</a>

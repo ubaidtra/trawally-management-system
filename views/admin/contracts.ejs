@@ -13,7 +13,10 @@
     <div class="main-content">
       <div class="content-header">
         <h1>Contract Management</h1>
-        <button class="btn btn-primary" onclick="toggleModal('createContractModal')">Create New Contract</button>
+        <div class="header-actions">
+          <button class="btn btn-info" onclick="exportToCSV('contractsTable', 'contracts.csv')">Export CSV</button>
+          <button class="btn btn-primary" onclick="toggleModal('createContractModal')">Create New Contract</button>
+        </div>
       </div>
       
       <% if (error) { %>
@@ -23,31 +26,47 @@
       <% if (success) { %>
         <div class="alert alert-success"><%= success %></div>
       <% } %>
+
+      <div class="search-filter-bar">
+        <input type="text" class="search-input" data-table="contractsTable" placeholder="Search contracts...">
+        <select class="filter-select" data-table="contractsTable" data-filter="status">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select class="filter-select" data-table="contractsTable" data-filter="payment">
+          <option value="">All Payments</option>
+          <option value="paid">Paid</option>
+          <option value="unpaid">Unpaid</option>
+        </select>
+        <span class="table-count" data-count="contractsTable"><%= contracts.length %> items</span>
+      </div>
       
       <div class="table-container">
-        <table class="data-table">
+        <table class="data-table" id="contractsTable">
           <thead>
             <tr>
-              <th>Client Name</th>
-              <th>Phone</th>
-              <th>Service Type</th>
-              <th>Start Date</th>
-              <th>Status</th>
-              <th>Fee</th>
+              <th data-sort="client" data-table="contractsTable">Client Name</th>
+              <th data-sort="phone" data-table="contractsTable">Phone</th>
+              <th data-sort="service" data-table="contractsTable">Service Type</th>
+              <th data-sort="date" data-table="contractsTable">Start Date</th>
+              <th data-sort="status" data-table="contractsTable">Status</th>
+              <th data-sort="fee" data-table="contractsTable">Fee</th>
               <th>Deployments</th>
-              <th>Payment</th>
+              <th data-filter="payment">Payment</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <% contracts.forEach(contract => { %>
               <tr>
-                <td><%= contract.clientName %></td>
-                <td><%= contract.clientPhone %></td>
-                <td><%= contract.serviceType %></td>
-                <td><%= new Date(contract.startDate).toLocaleDateString() %></td>
-                <td><span class="badge badge-<%= contract.status %>"><%= contract.status %></span></td>
-                <td>D <%= contract.totalFee %></td>
+                <td data-filter="client"><%= contract.clientName %></td>
+                <td data-filter="phone"><%= contract.clientPhone %></td>
+                <td data-filter="service"><%= contract.serviceType %></td>
+                <td data-filter="date"><%= new Date(contract.startDate).toLocaleDateString() %></td>
+                <td data-filter="status"><span class="badge badge-<%= contract.status %>"><%= contract.status %></span></td>
+                <td data-filter="fee">D <%= contract.totalFee %></td>
                 <td>
                   <% if (contract.deployments && contract.deployments.length > 0) { %>
                     <span class="badge badge-info"><%= contract.deployments.length %> staff</span>
@@ -56,7 +75,7 @@
                     <span class="badge badge-secondary">None</span>
                   <% } %>
                 </td>
-                <td><span class="badge badge-<%= contract.paymentStatus %>"><%= contract.paymentStatus %></span></td>
+                <td data-filter="payment"><span class="badge badge-<%= contract.paymentStatus %>"><%= contract.paymentStatus %></span></td>
                 <td>
                   <button class="btn btn-sm btn-primary" onclick="deployStaff('<%= contract._id %>')">Deploy Staff</button>
                   <a href="/admin/contracts/<%= contract._id %>/invoice" class="btn btn-sm btn-info" target="_blank">Print Invoice</a>
