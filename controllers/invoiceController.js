@@ -294,39 +294,6 @@ function generateInvoiceHTML(item, deployments, type) {
         </table>
       </div>
       
-      ${deployments && deployments.length > 0 ? `
-      <div class="section">
-        <h2>Deployed Staff</h2>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Staff Name</th>
-              <th>Specialization</th>
-              <th>Deployment Date</th>
-              <th>Transportation Cost</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${deployments.map(d => `
-              <tr>
-                <td>${d.staff ? d.staff.name : 'N/A'}</td>
-                <td>${d.staff ? d.staff.specialization : 'N/A'}</td>
-                <td>${new Date(d.deploymentDate).toLocaleDateString()}</td>
-                <td>D ${(d.transportationCost || 0).toLocaleString()}</td>
-              </tr>
-            `).join('')}
-            <tr style="background-color: #fff3cd; border-top: 2px solid #ffc107;">
-              <td colspan="3" style="text-align: right; font-weight: bold;">Total Transportation (Company Internal):</td>
-              <td style="font-weight: bold;">D ${deployments.reduce((sum, d) => sum + (d.transportationCost || 0), 0).toLocaleString()}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p style="color: #856404; background-color: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-top: 10px;">
-          <strong>Note:</strong> Transportation costs are for company internal records only and are not included in the client invoice amount.
-        </p>
-      </div>
-      ` : ''}
-      
       <div class="total-section">
         <table class="table" style="width: 300px; margin-left: auto;">
           <tbody>
@@ -557,39 +524,6 @@ function generateReceiptHTML(item, deployments, type) {
           </tbody>
         </table>
       </div>
-      
-      ${deployments && deployments.length > 0 ? `
-      <div class="section">
-        <h2>Deployed Staff</h2>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Staff Name</th>
-              <th>Specialization</th>
-              <th>Deployment Date</th>
-              <th>Transportation Cost</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${deployments.map(d => `
-              <tr>
-                <td>${d.staff ? d.staff.name : 'N/A'}</td>
-                <td>${d.staff ? d.staff.specialization : 'N/A'}</td>
-                <td>${new Date(d.deploymentDate).toLocaleDateString()}</td>
-                <td>D ${(d.transportationCost || 0).toLocaleString()}</td>
-              </tr>
-            `).join('')}
-            <tr style="background-color: #d1fae5; border-top: 2px solid #10b981;">
-              <td colspan="3" style="text-align: right; font-weight: bold;">Total Transportation (Company Internal):</td>
-              <td style="font-weight: bold;">D ${deployments.reduce((sum, d) => sum + (d.transportationCost || 0), 0).toLocaleString()}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p style="color: #065f46; background-color: #d1fae5; padding: 10px; border-left: 4px solid #10b981; margin-top: 10px;">
-          <strong>Note:</strong> Transportation costs are for company internal records only and were not included in the client payment amount.
-        </p>
-      </div>
-      ` : ''}
       
       <div class="total-section">
         <table class="table" style="width: 300px; margin-left: auto;">

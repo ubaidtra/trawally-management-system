@@ -63,13 +63,32 @@
                 <td data-filter="phone"><%= member.phone %></td>
                 <td data-filter="email"><%= member.email || 'N/A' %></td>
                 <td data-filter="specialization"><span class="badge badge-<%= member.specialization %>"><%= member.specialization %></span></td>
-                <td data-filter="status"><span class="badge badge-<%= member.status %>"><%= member.status %></span></td>
+                <td data-filter="status">
+                  <div class="status-group">
+                    <span class="badge badge-<%= member.status %>" id="status-badge-<%= member._id %>"><%= member.status %></span>
+                    <% if (member.status === 'active') { %>
+                      <button class="btn btn-sm btn-warning status-toggle-btn" onclick="toggleStaffStatus('<%= member._id %>', 'inactive')" title="Deactivate Staff">
+                        <span>Deactivate</span>
+                      </button>
+                    <% } else { %>
+                      <button class="btn btn-sm btn-success status-toggle-btn" onclick="toggleStaffStatus('<%= member._id %>', 'active')" title="Activate Staff">
+                        <span>Activate</span>
+                      </button>
+                    <% } %>
+                  </div>
+                </td>
                 <td data-filter="date"><%= new Date(member.dateJoined).toLocaleDateString() %></td>
                 <td>
-                  <button class="btn btn-sm btn-secondary" onclick="editStaff('<%= member._id %>', '<%= member.name %>', '<%= member.phone %>', '<%= member.email %>', '<%= member.specialization %>', '<%= member.status %>')">Edit</button>
-                  <form action="/admin/staff/<%= member._id %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure?')">
-                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                  </form>
+                  <div class="action-buttons">
+                    <div class="btn-group-primary">
+                      <button class="btn btn-sm btn-secondary" onclick="editStaff('<%= member._id %>', '<%= member.name %>', '<%= member.phone %>', '<%= member.email %>', '<%= member.specialization %>', '<%= member.status %>')" title="Edit Staff">Edit</button>
+                    </div>
+                    <div class="btn-group-danger">
+                      <form action="/admin/staff/<%= member._id %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this staff member? This action cannot be undone.')">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Delete Staff">Delete</button>
+                      </form>
+                    </div>
+                  </div>
                 </td>
               </tr>
             <% }) %>
@@ -167,6 +186,32 @@
       document.getElementById('edit_specialization').value = specialization;
       document.getElementById('edit_status').value = status;
       toggleModal('editStaffModal');
+    }
+
+    async function toggleStaffStatus(id, newStatus) {
+      if (!confirm(`Are you sure you want to ${newStatus === 'active' ? 'activate' : 'deactivate'} this staff member?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/admin/staff/${id}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+          location.reload();
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          alert('Error updating staff status: ' + (errorData.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error updating staff status:', error);
+        alert('Error updating staff status. Please try again.');
+      }
     }
   </script>
 </body>

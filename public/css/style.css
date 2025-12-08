@@ -788,13 +788,16 @@ body {
   align-items: flex-start;
 }
 
-.payment-toggle-btn {
+.payment-toggle-btn,
+.status-toggle-btn {
   width: 100%;
   min-width: 80px;
   white-space: nowrap;
+  margin-top: 0.5rem;
 }
 
-.payment-toggle-btn span {
+.payment-toggle-btn span,
+.status-toggle-btn span {
   display: inline-block;
 }
 

@@ -63,6 +63,37 @@ exports.updateStaff = async (req, res) => {
   }
 };
 
+exports.toggleStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!id) {
+      req.session.error = 'Staff ID is required';
+      return req.session.save(() => res.redirect('/admin/staff'));
+    }
+    
+    if (!status || !['active', 'inactive'].includes(status)) {
+      req.session.error = 'Invalid status';
+      return req.session.save(() => res.redirect('/admin/staff'));
+    }
+    
+    const staff = await Staff.findById(id);
+    if (!staff) {
+      req.session.error = 'Staff member not found';
+      return req.session.save(() => res.redirect('/admin/staff'));
+    }
+    
+    await Staff.findByIdAndUpdate(id, { status }, { new: true, runValidators: true });
+    req.session.success = `Staff status updated to ${status}`;
+    req.session.save(() => res.redirect('/admin/staff'));
+  } catch (error) {
+    console.error('Toggle staff status error:', error);
+    req.session.error = 'Error updating staff status: ' + (error.message || 'Unknown error');
+    req.session.save(() => res.redirect('/admin/staff'));
+  }
+};
+
 exports.deleteStaff = async (req, res) => {
   try {
     const { id } = req.params;

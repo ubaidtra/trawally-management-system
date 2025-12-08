@@ -3,6 +3,7 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const staffController = require('../controllers/staffController');
 const attendanceController = require('../controllers/attendanceController');
+const breakfastController = require('../controllers/breakfastController');
 const contractController = require('../controllers/contractController');
 const serviceController = require('../controllers/serviceController');
 const invoiceController = require('../controllers/invoiceController');
@@ -17,10 +18,15 @@ router.get('/dashboard', adminController.showDashboard);
 router.get('/staff', staffController.showStaff);
 router.post('/staff', staffController.createStaff);
 router.put('/staff/:id', staffController.updateStaff);
+router.patch('/staff/:id/status', staffController.toggleStatus);
 router.delete('/staff/:id', staffController.deleteStaff);
 
 router.get('/attendance', attendanceController.showAttendance);
 router.post('/attendance', attendanceController.recordAttendance);
+
+router.get('/breakfast', breakfastController.showBreakfast);
+router.post('/breakfast', breakfastController.recordBreakfast);
+router.delete('/breakfast/:id', breakfastController.deleteBreakfast);
 
 router.get('/contracts', contractController.showContracts);
 router.post('/contracts', contractController.createContract);
