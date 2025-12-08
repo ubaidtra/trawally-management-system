@@ -7,6 +7,7 @@ const breakfastController = require('../controllers/breakfastController');
 const contractController = require('../controllers/contractController');
 const serviceController = require('../controllers/serviceController');
 const invoiceController = require('../controllers/invoiceController');
+const messageController = require('../controllers/messageController');
 const { isAuthenticated } = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 
@@ -43,6 +44,11 @@ router.patch('/services/:id/status', serviceController.updateStatus);
 router.delete('/services/:id', serviceController.deleteService);
 router.get('/services/:id/invoice', invoiceController.printServiceInvoice);
 router.get('/services/:id/receipt', invoiceController.printServiceReceipt);
+
+router.get('/messages', messageController.showMessages);
+router.post('/messages', messageController.sendMessage);
+router.patch('/messages/:id/read', messageController.markAsRead);
+router.delete('/messages/:id', messageController.deleteMessage);
 
 module.exports = router;
 

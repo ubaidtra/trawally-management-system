@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <div class="main-content">
+      <div class="content-header">
+        <h1>Messages</h1>
+        <div class="header-actions">
+          <span class="badge badge-info"><%= unreadCount %> unread</span>
+          <button class="btn btn-primary" onclick="toggleModal('composeMessageModal')">Compose Message</button>
+        </div>
+      </div>
+      
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (success) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
+      
+      <div class="messages-container">
+        <div class="messages-tabs">
+          <button class="tab-btn active" onclick="showTab('inbox')">Inbox (<%= receivedMessages.length %>)</button>
+          <button class="tab-btn" onclick="showTab('sent')">Sent (<%= sentMessages.length %>)</button>
+        </div>
+        
+        <div id="inbox" class="messages-tab-content active">
+          <h2>Received Messages</h2>
+          <% if (receivedMessages.length === 0) { %>
+            <p class="empty-state">No messages received yet</p>
+          <% } else { %>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>From</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% receivedMessages.forEach(msg => { %>
+                    <tr class="<%= msg.isRead ? '' : 'unread-message' %>">
+                      <td><strong><%= msg.sender.username %></strong> (<%= msg.sender.role.toUpperCase() %>)</td>
+                      <td><%= msg.subject %></td>
+                      <td><%= new Date(msg.createdAt).toLocaleString() %></td>
+                      <td>
+                        <% if (msg.isRead) { %>
+                          <span class="badge badge-completed">Read</span>
+                        <% } else { %>
+                          <span class="badge badge-pending">Unread</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <button class="btn btn-sm btn-info" onclick="viewMessage('<%= msg._id %>', '<%= msg.sender.username %>', '<%= msg.subject %>', `<%= msg.message.replace(/`/g, '\\`').replace(/\n/g, '\\n') %>`, '<%= new Date(msg.createdAt).toLocaleString() %>', <%= msg.isRead %>)">View</button>
+                        <form action="/messages/<%= msg._id %>?_method=DELETE" method="POST" style="display: inline;">
+                          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this message?')">Delete</button>
+                        </form>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+        
+        <div id="sent" class="messages-tab-content">
+          <h2>Sent Messages</h2>
+          <% if (sentMessages.length === 0) { %>
+            <p class="empty-state">No messages sent yet</p>
+          <% } else { %>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>To</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% sentMessages.forEach(msg => { %>
+                    <tr>
+                      <td><strong><%= msg.recipient.username %></strong> (<%= msg.recipient.role.toUpperCase() %>)</td>
+                      <td><%= msg.subject %></td>
+                      <td><%= new Date(msg.createdAt).toLocaleString() %></td>
+                      <td>
+                        <% if (msg.isRead) { %>
+                          <span class="badge badge-completed">Read</span>
+                        <% } else { %>
+                          <span class="badge badge-info">Sent</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <button class="btn btn-sm btn-info" onclick="viewSentMessage('<%= msg.recipient.username %>', '<%= msg.subject %>', `<%= msg.message.replace(/`/g, '\\`').replace(/\n/g, '\\n') %>`, '<%= new Date(msg.createdAt).toLocaleString() %>')">View</button>
+                        <form action="/messages/<%= msg._id %>?_method=DELETE" method="POST" style="display: inline;">
+                          <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this message?')">Delete</button>
+                        </form>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="composeMessageModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Compose Message</h2>
+        <span class="close" onclick="toggleModal('composeMessageModal')">&times;</span>
+      </div>
+      <form action="/messages" method="POST">
+        <div class="form-group">
+          <label for="recipientId">To</label>
+          <select id="recipientId" name="recipientId" required>
+            <option value="">Select recipient...</option>
+            <% recipients.forEach(user => { %>
+              <option value="<%= user._id %>"><%= user.username %> (<%= user.role.toUpperCase() %>)</option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="subject">Subject</label>
+          <input type="text" id="subject" name="subject" required maxlength="200">
+        </div>
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="8" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="toggleModal('composeMessageModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Send Message</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div id="viewMessageModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="viewMessageSubject"></h2>
+        <span class="close" onclick="toggleModal('viewMessageModal')">&times;</span>
+      </div>
+      <div class="message-details">
+        <p><strong>From:</strong> <span id="viewMessageFrom"></span></p>
+        <p><strong>Date:</strong> <span id="viewMessageDate"></span></p>
+        <hr>
+        <div id="viewMessageContent" style="white-space: pre-wrap; padding: 1rem; background: #f9fafb; border-radius: 4px;"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="toggleModal('viewMessageModal')">Close</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/js/main.js"></script>
+  <script>
+    function showTab(tabName) {
+      const tabs = document.querySelectorAll('.messages-tab-content');
+      const btns = document.querySelectorAll('.tab-btn');
+      
+      tabs.forEach(tab => tab.classList.remove('active'));
+      btns.forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+    
+    async function viewMessage(id, from, subject, message, date, isRead) {
+      document.getElementById('viewMessageFrom').textContent = from;
+      document.getElementById('viewMessageSubject').textContent = subject;
+      document.getElementById('viewMessageContent').textContent = message;
+      document.getElementById('viewMessageDate').textContent = date;
+      
+      toggleModal('viewMessageModal');
+      
+      if (!isRead) {
+        try {
+          await fetch(`/messages/${id}/read`, { method: 'PATCH' });
+          location.reload();
+        } catch (error) {
+          console.error('Error marking message as read:', error);
+        }
+      }
+    }
+    
+    function viewSentMessage(to, subject, message, date) {
+      document.getElementById('viewMessageFrom').textContent = 'To: ' + to;
+      document.getElementById('viewMessageSubject').textContent = subject;
+      document.getElementById('viewMessageContent').textContent = message;
+      document.getElementById('viewMessageDate').textContent = date;
+      
+      toggleModal('viewMessageModal');
+    }
+  </script>
+</body>
+</html>
+

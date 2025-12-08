@@ -45,12 +45,22 @@
             Services
           </a>
         </li>
+        <li>
+          <a href="/admin/messages" class="<%= currentPage === 'messages' ? 'active' : '' %>">
+            Messages
+          </a>
+        </li>
       <% } %>
       
       <% if (user.role === 'ceo') { %>
         <li>
           <a href="/ceo/reports" class="<%= currentPage === 'reports' ? 'active' : '' %>">
             Reports
+          </a>
+        </li>
+        <li>
+          <a href="/ceo/messages" class="<%= currentPage === 'messages' ? 'active' : '' %>">
+            Messages
           </a>
         </li>
       <% } %>
