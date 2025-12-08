@@ -95,28 +95,47 @@ exports.updatePaymentStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { paymentStatus } = req.body;
+    const isAjax = req.headers['content-type']?.includes('application/json');
     
     if (!id) {
+      if (isAjax) {
+        return res.status(400).json({ error: 'Service ID is required' });
+      }
       req.session.error = 'Service ID is required';
       return req.session.save(() => res.redirect('/admin/services'));
     }
     
     if (!paymentStatus || !['paid', 'unpaid'].includes(paymentStatus)) {
+      if (isAjax) {
+        return res.status(400).json({ error: 'Invalid payment status' });
+      }
       req.session.error = 'Invalid payment status';
       return req.session.save(() => res.redirect('/admin/services'));
     }
     
     const service = await Service.findById(id);
     if (!service) {
+      if (isAjax) {
+        return res.status(404).json({ error: 'Service not found' });
+      }
       req.session.error = 'Service not found';
       return req.session.save(() => res.redirect('/admin/services'));
     }
     
     await Service.findByIdAndUpdate(id, { paymentStatus }, { new: true, runValidators: true });
+    
+    if (isAjax) {
+      return res.json({ success: true, message: `Payment status updated to ${paymentStatus}`, paymentStatus });
+    }
+    
     req.session.success = `Payment status updated to ${paymentStatus}`;
     req.session.save(() => res.redirect('/admin/services'));
   } catch (error) {
     console.error('Update payment status error:', error);
+    const isAjax = req.headers['content-type']?.includes('application/json');
+    if (isAjax) {
+      return res.status(500).json({ error: 'Error updating payment status: ' + (error.message || 'Unknown error') });
+    }
     req.session.error = 'Error updating payment status: ' + (error.message || 'Unknown error');
     req.session.save(() => res.redirect('/admin/services'));
   }

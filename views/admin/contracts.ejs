@@ -310,7 +310,14 @@
         });
 
         if (response.ok) {
-          location.reload();
+          const data = await response.json();
+          const badge = document.getElementById(`payment-badge-${id}`);
+          if (badge) {
+            badge.textContent = data.paymentStatus;
+            badge.className = `badge badge-${data.paymentStatus}`;
+          }
+          showToast(data.message || 'Payment status updated successfully', 'success');
+          setTimeout(() => location.reload(), 1000);
         } else {
           const errorData = await response.json().catch(() => ({}));
           alert('Error updating payment status: ' + (errorData.error || 'Unknown error'));
