@@ -118,6 +118,68 @@ exports.updateContract = async (req, res) => {
   }
 };
 
+exports.updatePaymentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentStatus } = req.body;
+    
+    if (!id) {
+      req.session.error = 'Contract ID is required';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    if (!paymentStatus || !['paid', 'unpaid'].includes(paymentStatus)) {
+      req.session.error = 'Invalid payment status';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    const contract = await Contract.findById(id);
+    if (!contract) {
+      req.session.error = 'Contract not found';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    await Contract.findByIdAndUpdate(id, { paymentStatus }, { new: true, runValidators: true });
+    req.session.success = `Payment status updated to ${paymentStatus}`;
+    req.session.save(() => res.redirect('/admin/contracts'));
+  } catch (error) {
+    console.error('Update payment status error:', error);
+    req.session.error = 'Error updating payment status: ' + (error.message || 'Unknown error');
+    req.session.save(() => res.redirect('/admin/contracts'));
+  }
+};
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!id) {
+      req.session.error = 'Contract ID is required';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    if (!status || !['pending', 'in-progress', 'completed', 'cancelled'].includes(status)) {
+      req.session.error = 'Invalid status';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    const contract = await Contract.findById(id);
+    if (!contract) {
+      req.session.error = 'Contract not found';
+      return req.session.save(() => res.redirect('/admin/contracts'));
+    }
+    
+    await Contract.findByIdAndUpdate(id, { status }, { new: true, runValidators: true });
+    req.session.success = `Contract status updated to ${status}`;
+    req.session.save(() => res.redirect('/admin/contracts'));
+  } catch (error) {
+    console.error('Update status error:', error);
+    req.session.error = 'Error updating status: ' + (error.message || 'Unknown error');
+    req.session.save(() => res.redirect('/admin/contracts'));
+  }
+};
+
 exports.deleteContract = async (req, res) => {
   try {
     const { id } = req.params;

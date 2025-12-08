@@ -24,12 +24,16 @@ router.post('/attendance', attendanceController.recordAttendance);
 
 router.get('/contracts', contractController.showContracts);
 router.post('/contracts', contractController.createContract);
+router.patch('/contracts/:id/payment', contractController.updatePaymentStatus);
+router.patch('/contracts/:id/status', contractController.updateStatus);
 router.delete('/contracts/:id', contractController.deleteContract);
 router.get('/contracts/:id/invoice', invoiceController.printContractInvoice);
 router.get('/contracts/:id/receipt', invoiceController.printContractReceipt);
 
 router.get('/services', serviceController.showServices);
 router.post('/services', serviceController.createService);
+router.patch('/services/:id/payment', serviceController.updatePaymentStatus);
+router.patch('/services/:id/status', serviceController.updateStatus);
 router.delete('/services/:id', serviceController.deleteService);
 router.get('/services/:id/invoice', invoiceController.printServiceInvoice);
 router.get('/services/:id/receipt', invoiceController.printServiceReceipt);

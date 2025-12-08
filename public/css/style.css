@@ -732,14 +732,39 @@ body {
   color: var(--white);
 }
 
+.btn-warning {
+  background-color: var(--warning-yellow);
+  color: var(--dark-gray);
+}
+
+.btn-warning:hover {
+  background-color: #d97706;
+  color: var(--white);
+}
+
 .badge-deployed {
   background-color: #3b82f6;
   color: var(--white);
 }
 
 .badge-cancelled {
-  background-color: var(--danger-red);
+  background-color: #6b7280;
   color: var(--white);
+}
+
+.status-select {
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.status-select:hover {
+  border-color: var(--primary-blue) !important;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: var(--primary-blue) !important;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
 }
 
 .badge-info {

@@ -18,6 +18,7 @@ exports.showDashboard = async (req, res) => {
     const completedContracts = await Contract.countDocuments({ status: 'completed' }).catch(() => 0);
     const inProgressContracts = await Contract.countDocuments({ status: 'in-progress' }).catch(() => 0);
     const pendingContracts = await Contract.countDocuments({ status: 'pending' }).catch(() => 0);
+    const cancelledContracts = await Contract.countDocuments({ status: 'cancelled' }).catch(() => 0);
     
     const contractsByType = await Contract.aggregate([
       { $group: { _id: '$serviceType', count: { $sum: 1 }, revenue: { $sum: '$totalFee' } } }
@@ -37,6 +38,7 @@ exports.showDashboard = async (req, res) => {
       completedContracts: completedContracts || 0,
       inProgressContracts: inProgressContracts || 0,
       pendingContracts: pendingContracts || 0,
+      cancelledContracts: cancelledContracts || 0,
       contractsByType: contractsByType || [],
       servicesByType: servicesByType || []
     });
@@ -52,6 +54,7 @@ exports.showDashboard = async (req, res) => {
       completedContracts: 0,
       inProgressContracts: 0,
       pendingContracts: 0,
+      cancelledContracts: 0,
       contractsByType: [],
       servicesByType: [],
       error: 'Error loading dashboard data'

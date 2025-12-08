@@ -91,6 +91,68 @@ exports.updateService = async (req, res) => {
   }
 };
 
+exports.updatePaymentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentStatus } = req.body;
+    
+    if (!id) {
+      req.session.error = 'Service ID is required';
+      return req.session.save(() => res.redirect('/admin/services'));
+    }
+    
+    if (!paymentStatus || !['paid', 'unpaid'].includes(paymentStatus)) {
+      req.session.error = 'Invalid payment status';
+      return req.session.save(() => res.redirect('/admin/services'));
+    }
+    
+    const service = await Service.findById(id);
+    if (!service) {
+      req.session.error = 'Service not found';
+      return req.session.save(() => res.redirect('/admin/services'));
+    }
+    
+    await Service.findByIdAndUpdate(id, { paymentStatus }, { new: true, runValidators: true });
+    req.session.success = `Payment status updated to ${paymentStatus}`;
+    req.session.save(() => res.redirect('/admin/services'));
+  } catch (error) {
+    console.error('Update payment status error:', error);
+    req.session.error = 'Error updating payment status: ' + (error.message || 'Unknown error');
+    req.session.save(() => res.redirect('/admin/services'));
+  }
+};
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!id) {
+      req.session.error = 'Service ID is required';
+      return req.session.save(() => res.redirect('/admin/services'));
+    }
+    
+    if (!status || !['pending', 'in-progress', 'completed', 'cancelled'].includes(status)) {
+      req.session.error = 'Invalid status';
+      return req.session.save(() => res.redirect('/admin/services'));
+    }
+    
+    const service = await Service.findById(id);
+    if (!service) {
+      req.session.error = 'Service not found';
+      return req.session.save(() => res.redirect('/admin/services'));
+    }
+    
+    await Service.findByIdAndUpdate(id, { status }, { new: true, runValidators: true });
+    req.session.success = `Service status updated to ${status}`;
+    req.session.save(() => res.redirect('/admin/services'));
+  } catch (error) {
+    console.error('Update status error:', error);
+    req.session.error = 'Error updating status: ' + (error.message || 'Unknown error');
+    req.session.save(() => res.redirect('/admin/services'));
+  }
+};
+
 exports.deleteService = async (req, res) => {
   try {
     const { id } = req.params;

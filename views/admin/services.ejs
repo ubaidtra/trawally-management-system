@@ -34,6 +34,7 @@
           <option value="pending">Pending</option>
           <option value="in-progress">In Progress</option>
           <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
         </select>
         <select class="filter-select" data-table="servicesTable" data-filter="payment">
           <option value="">All Payments</option>
@@ -65,7 +66,16 @@
                 <td data-filter="phone"><%= service.clientPhone %></td>
                 <td data-filter="service"><%= service.serviceType %></td>
                 <td data-filter="date"><%= new Date(service.serviceDate).toLocaleDateString() %></td>
-                <td data-filter="status"><span class="badge badge-<%= service.status %>"><%= service.status %></span></td>
+                <td data-filter="status">
+                  <span class="badge badge-<%= service.status %>" id="status-badge-<%= service._id %>"><%= service.status %></span>
+                  <br>
+                  <select class="status-select" id="status-select-<%= service._id %>" onchange="updateStatus('<%= service._id %>', this.value, 'service')" style="margin-top: 0.25rem; padding: 0.25rem; font-size: 0.875rem; border-radius: 4px; border: 1px solid #d1d5db;">
+                    <option value="pending" <%= service.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="in-progress" <%= service.status === 'in-progress' ? 'selected' : '' %>>In Progress</option>
+                    <option value="completed" <%= service.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                    <option value="cancelled" <%= service.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                  </select>
+                </td>
                 <td data-filter="fee">D <%= service.totalFee %></td>
                 <td>
                   <% if (service.deployments && service.deployments.length > 0) { %>
@@ -75,7 +85,15 @@
                     <span class="badge badge-secondary">None</span>
                   <% } %>
                 </td>
-                <td data-filter="payment"><span class="badge badge-<%= service.paymentStatus %>"><%= service.paymentStatus %></span></td>
+                <td data-filter="payment">
+                  <span class="badge badge-<%= service.paymentStatus %>" id="payment-badge-<%= service._id %>"><%= service.paymentStatus %></span>
+                  <br>
+                  <% if (service.paymentStatus === 'paid') { %>
+                    <button class="btn btn-sm btn-warning" onclick="togglePaymentStatus('<%= service._id %>', 'unpaid', 'service')" style="margin-top: 0.25rem;">Mark Unpaid</button>
+                  <% } else { %>
+                    <button class="btn btn-sm btn-success" onclick="togglePaymentStatus('<%= service._id %>', 'paid', 'service')" style="margin-top: 0.25rem;">Mark Paid</button>
+                  <% } %>
+                </td>
                 <td>
                   <button class="btn btn-sm btn-primary" onclick="deployStaff('<%= service._id %>', 'service')">Deploy Staff</button>
                   <a href="/admin/services/<%= service._id %>/invoice" class="btn btn-sm btn-info" target="_blank">Print Invoice</a>
@@ -238,6 +256,78 @@
       } catch (error) {
         console.error('Error fetching deployments:', error);
         alert('Error loading deployments');
+      }
+    }
+
+    async function togglePaymentStatus(id, newStatus, type) {
+      if (!confirm(`Are you sure you want to mark this as ${newStatus}?`)) {
+        return;
+      }
+
+      try {
+        const url = type === 'contract' 
+          ? `/admin/contracts/${id}/payment` 
+          : `/admin/services/${id}/payment`;
+        
+        const response = await fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ paymentStatus: newStatus })
+        });
+
+        if (response.ok) {
+          location.reload();
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          alert('Error updating payment status: ' + (errorData.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error updating payment status:', error);
+        alert('Error updating payment status. Please try again.');
+      }
+    }
+
+    async function updateStatus(id, newStatus, type) {
+      if (!confirm(`Are you sure you want to change status to ${newStatus}?`)) {
+        const selectElement = document.getElementById(`status-select-${id}`);
+        const currentStatus = selectElement.dataset.currentStatus || 'pending';
+        selectElement.value = currentStatus;
+        return;
+      }
+
+      try {
+        const url = type === 'contract' 
+          ? `/admin/contracts/${id}/status` 
+          : `/admin/services/${id}/status`;
+        
+        const response = await fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+          const badge = document.getElementById(`status-badge-${id}`);
+          badge.textContent = newStatus;
+          badge.className = `badge badge-${newStatus}`;
+          showToast(`Status updated to ${newStatus}`, 'success');
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          const selectElement = document.getElementById(`status-select-${id}`);
+          const currentStatus = selectElement.dataset.currentStatus || 'pending';
+          selectElement.value = currentStatus;
+          alert('Error updating status: ' + (errorData.error || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error updating status:', error);
+        const selectElement = document.getElementById(`status-select-${id}`);
+        const currentStatus = selectElement.dataset.currentStatus || 'pending';
+        selectElement.value = currentStatus;
+        alert('Error updating status. Please try again.');
       }
     }
   </script>

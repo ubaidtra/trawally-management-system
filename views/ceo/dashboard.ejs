@@ -74,6 +74,10 @@
             <h3>Pending</h3>
             <p class="stat-number"><%= pendingContracts %></p>
           </div>
+          <div class="stat-card">
+            <h3>Cancelled</h3>
+            <p class="stat-number"><%= cancelledContracts || 0 %></p>
+          </div>
         </div>
       </div>
     </div>
@@ -85,10 +89,10 @@
     new Chart(contractStatusCtx, {
       type: 'doughnut',
       data: {
-        labels: ['Completed', 'In Progress', 'Pending'],
+        labels: ['Completed', 'In Progress', 'Pending', 'Cancelled'],
         datasets: [{
-          data: [<%= completedContracts %>, <%= inProgressContracts %>, <%= pendingContracts %>],
-          backgroundColor: ['#10b981', '#f59e0b', '#6366f1']
+          data: [<%= completedContracts %>, <%= inProgressContracts %>, <%= pendingContracts %>, <%= cancelledContracts || 0 %>],
+          backgroundColor: ['#10b981', '#f59e0b', '#6366f1', '#6b7280']
         }]
       },
       options: {
