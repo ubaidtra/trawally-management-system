@@ -315,27 +315,24 @@ function generateInvoiceHTML(item, deployments, type) {
                 <td>D ${(d.transportationCost || 0).toLocaleString()}</td>
               </tr>
             `).join('')}
+            <tr style="background-color: #fff3cd; border-top: 2px solid #ffc107;">
+              <td colspan="3" style="text-align: right; font-weight: bold;">Total Transportation (Company Internal):</td>
+              <td style="font-weight: bold;">D ${deployments.reduce((sum, d) => sum + (d.transportationCost || 0), 0).toLocaleString()}</td>
+            </tr>
           </tbody>
         </table>
+        <p style="color: #856404; background-color: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin-top: 10px;">
+          <strong>Note:</strong> Transportation costs are for company internal records only and are not included in the client invoice amount.
+        </p>
       </div>
       ` : ''}
       
       <div class="total-section">
         <table class="table" style="width: 300px; margin-left: auto;">
           <tbody>
-            <tr>
-              <td><strong>Subtotal:</strong></td>
-              <td>D ${item.totalFee.toLocaleString()}</td>
-            </tr>
-            ${deployments && deployments.length > 0 ? `
-            <tr>
-              <td><strong>Transportation:</strong></td>
-              <td>D ${deployments.reduce((sum, d) => sum + (d.transportationCost || 0), 0).toLocaleString()}</td>
-            </tr>
-            ` : ''}
             <tr class="total-row">
               <td><strong>Total Amount:</strong></td>
-              <td>D ${(item.totalFee + (deployments ? deployments.reduce((sum, d) => sum + (d.transportationCost || 0), 0) : 0)).toLocaleString()}</td>
+              <td>D ${item.totalFee.toLocaleString()}</td>
             </tr>
           </tbody>
         </table>
@@ -356,7 +353,7 @@ function generateInvoiceHTML(item, deployments, type) {
 function generateReceiptHTML(item, deployments, type) {
   const itemType = type === 'contract' ? 'Contract' : 'Service';
   const dateField = type === 'contract' ? item.startDate : item.serviceDate;
-  const totalAmount = item.totalFee + (deployments ? deployments.reduce((sum, d) => sum + (d.transportationCost || 0), 0) : 0);
+  const totalAmount = item.totalFee;
   
   return `
     <!DOCTYPE html>
@@ -582,24 +579,21 @@ function generateReceiptHTML(item, deployments, type) {
                 <td>D ${(d.transportationCost || 0).toLocaleString()}</td>
               </tr>
             `).join('')}
+            <tr style="background-color: #d1fae5; border-top: 2px solid #10b981;">
+              <td colspan="3" style="text-align: right; font-weight: bold;">Total Transportation (Company Internal):</td>
+              <td style="font-weight: bold;">D ${deployments.reduce((sum, d) => sum + (d.transportationCost || 0), 0).toLocaleString()}</td>
+            </tr>
           </tbody>
         </table>
+        <p style="color: #065f46; background-color: #d1fae5; padding: 10px; border-left: 4px solid #10b981; margin-top: 10px;">
+          <strong>Note:</strong> Transportation costs are for company internal records only and were not included in the client payment amount.
+        </p>
       </div>
       ` : ''}
       
       <div class="total-section">
         <table class="table" style="width: 300px; margin-left: auto;">
           <tbody>
-            <tr>
-              <td><strong>Subtotal:</strong></td>
-              <td>D ${item.totalFee.toLocaleString()}</td>
-            </tr>
-            ${deployments && deployments.length > 0 ? `
-            <tr>
-              <td><strong>Transportation:</strong></td>
-              <td>D ${deployments.reduce((sum, d) => sum + (d.transportationCost || 0), 0).toLocaleString()}</td>
-            </tr>
-            ` : ''}
             <tr class="total-row">
               <td><strong>Total Paid:</strong></td>
               <td>D ${totalAmount.toLocaleString()}</td>
