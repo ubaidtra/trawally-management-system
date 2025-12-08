@@ -752,9 +752,23 @@ body {
   color: var(--white);
 }
 
+.status-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
 .status-select {
   cursor: pointer;
   transition: border-color 0.2s;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  background: var(--white);
+  width: 100%;
+  min-width: 120px;
 }
 
 .status-select:hover {
@@ -765,6 +779,112 @@ body {
   outline: none;
   border-color: var(--primary-blue) !important;
   box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.payment-status-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.payment-toggle-btn {
+  width: 100%;
+  min-width: 80px;
+  white-space: nowrap;
+}
+
+.payment-toggle-btn span {
+  display: inline-block;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.btn-group-primary,
+.btn-group-secondary,
+.btn-group-danger {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.btn-group-primary .btn {
+  flex: 1;
+  min-width: 80px;
+}
+
+.btn-group-secondary .btn {
+  flex: 1;
+  min-width: 70px;
+}
+
+.btn-group-danger .btn {
+  width: 100%;
+}
+
+.action-buttons .btn {
+  white-space: nowrap;
+  text-align: center;
+  font-weight: 500;
+}
+
+.action-buttons .btn span {
+  display: inline-block;
+}
+
+.data-table td .action-buttons {
+  padding: 0.5rem 0;
+}
+
+.deployment-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.deployment-info .btn-link {
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: auto;
+  }
+
+  .btn-group-primary,
+  .btn-group-secondary,
+  .btn-group-danger {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .btn-group-danger .btn {
+    width: auto;
+    flex: 1;
+  }
+
+  .deployment-info {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .status-group,
+  .payment-status-group {
+    align-items: stretch;
+  }
+
+  .status-select {
+    width: 100%;
+  }
 }
 
 .badge-info {

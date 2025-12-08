@@ -67,42 +67,66 @@
                 <td data-filter="service"><%= contract.serviceType %></td>
                 <td data-filter="date"><%= new Date(contract.startDate).toLocaleDateString() %></td>
                 <td data-filter="status">
-                  <span class="badge badge-<%= contract.status %>" id="status-badge-<%= contract._id %>"><%= contract.status %></span>
-                  <br>
-                  <select class="status-select" id="status-select-<%= contract._id %>" onchange="updateStatus('<%= contract._id %>', this.value, 'contract')" style="margin-top: 0.25rem; padding: 0.25rem; font-size: 0.875rem; border-radius: 4px; border: 1px solid #d1d5db;">
-                    <option value="pending" <%= contract.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                    <option value="in-progress" <%= contract.status === 'in-progress' ? 'selected' : '' %>>In Progress</option>
-                    <option value="completed" <%= contract.status === 'completed' ? 'selected' : '' %>>Completed</option>
-                    <option value="cancelled" <%= contract.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
-                  </select>
+                  <div class="status-group">
+                    <span class="badge badge-<%= contract.status %>" id="status-badge-<%= contract._id %>"><%= contract.status %></span>
+                    <select class="status-select" id="status-select-<%= contract._id %>" onchange="updateStatus('<%= contract._id %>', this.value, 'contract')" title="Change Status">
+                      <option value="pending" <%= contract.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                      <option value="in-progress" <%= contract.status === 'in-progress' ? 'selected' : '' %>>In Progress</option>
+                      <option value="completed" <%= contract.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                      <option value="cancelled" <%= contract.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                    </select>
+                  </div>
                 </td>
                 <td data-filter="fee">D <%= contract.totalFee %></td>
                 <td>
                   <% if (contract.deployments && contract.deployments.length > 0) { %>
-                    <span class="badge badge-info"><%= contract.deployments.length %> staff</span>
-                    <button class="btn btn-sm btn-link" onclick="viewDeployments('<%= contract._id %>')">View</button>
+                    <div class="deployment-info">
+                      <span class="badge badge-info"><%= contract.deployments.length %> staff</span>
+                      <button class="btn btn-sm btn-link" onclick="viewDeployments('<%= contract._id %>')" title="View Deployments">View</button>
+                    </div>
                   <% } else { %>
                     <span class="badge badge-secondary">None</span>
                   <% } %>
                 </td>
                 <td data-filter="payment">
-                  <span class="badge badge-<%= contract.paymentStatus %>" id="payment-badge-<%= contract._id %>"><%= contract.paymentStatus %></span>
-                  <br>
-                  <% if (contract.paymentStatus === 'paid') { %>
-                    <button class="btn btn-sm btn-warning" onclick="togglePaymentStatus('<%= contract._id %>', 'unpaid', 'contract')" style="margin-top: 0.25rem;">Mark Unpaid</button>
-                  <% } else { %>
-                    <button class="btn btn-sm btn-success" onclick="togglePaymentStatus('<%= contract._id %>', 'paid', 'contract')" style="margin-top: 0.25rem;">Mark Paid</button>
-                  <% } %>
+                  <div class="payment-status-group">
+                    <span class="badge badge-<%= contract.paymentStatus %>" id="payment-badge-<%= contract._id %>"><%= contract.paymentStatus %></span>
+                    <% if (contract.paymentStatus === 'paid') { %>
+                      <button class="btn btn-sm btn-warning payment-toggle-btn" onclick="togglePaymentStatus('<%= contract._id %>', 'unpaid', 'contract')" title="Mark as Unpaid">
+                        <span>Unpaid</span>
+                      </button>
+                    <% } else { %>
+                      <button class="btn btn-sm btn-success payment-toggle-btn" onclick="togglePaymentStatus('<%= contract._id %>', 'paid', 'contract')" title="Mark as Paid">
+                        <span>Paid</span>
+                      </button>
+                    <% } %>
+                  </div>
                 </td>
                 <td>
-                  <button class="btn btn-sm btn-primary" onclick="deployStaff('<%= contract._id %>')">Deploy Staff</button>
-                  <a href="/admin/contracts/<%= contract._id %>/invoice" class="btn btn-sm btn-info" target="_blank">Print Invoice</a>
-                  <% if (contract.paymentStatus === 'paid') { %>
-                    <a href="/admin/contracts/<%= contract._id %>/receipt" class="btn btn-sm btn-success" target="_blank">Print Receipt</a>
-                  <% } %>
-                  <form action="/admin/contracts/<%= contract._id %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this contract? This will also delete all associated deployments. This action cannot be undone.')">
-                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                  </form>
+                  <div class="action-buttons">
+                    <div class="btn-group-primary">
+                      <button class="btn btn-sm btn-primary" onclick="deployStaff('<%= contract._id %>')" title="Deploy Staff">
+                        <span>Deploy</span>
+                      </button>
+                    </div>
+                    <div class="btn-group-secondary">
+                      <a href="/admin/contracts/<%= contract._id %>/invoice" class="btn btn-sm btn-info" target="_blank" title="Print Invoice">
+                        <span>Invoice</span>
+                      </a>
+                      <% if (contract.paymentStatus === 'paid') { %>
+                        <a href="/admin/contracts/<%= contract._id %>/receipt" class="btn btn-sm btn-success" target="_blank" title="Print Receipt">
+                          <span>Receipt</span>
+                        </a>
+                      <% } %>
+                    </div>
+                    <div class="btn-group-danger">
+                      <form action="/admin/contracts/<%= contract._id %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this contract? This will also delete all associated deployments. This action cannot be undone.')">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Delete Contract">
+                          <span>Delete</span>
+                        </button>
+                      </form>
+                    </div>
+                  </div>
                 </td>
               </tr>
             <% }) %>
