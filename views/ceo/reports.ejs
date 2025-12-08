@@ -30,7 +30,10 @@
             <select id="reportType" name="reportType" onchange="this.form.submit()">
               <option value="attendance" <%= reportType === 'attendance' ? 'selected' : '' %>>Attendance Report</option>
               <option value="financial" <%= reportType === 'financial' ? 'selected' : '' %>>Financial Report</option>
-              <option value="deployment" <%= reportType === 'deployment' ? 'selected' : '' %>>Staff Deployment Report</option>
+              <option value="deployment" <%= reportType === 'deployment' ? 'selected' : '' %>>Deployment Report</option>
+              <option value="breakfast" <%= reportType === 'breakfast' ? 'selected' : '' %>>Breakfast Expenses</option>
+              <option value="staff" <%= reportType === 'staff' ? 'selected' : '' %>>Staff Report</option>
+              <option value="expenses" <%= reportType === 'expenses' ? 'selected' : '' %>>Total Expenses Report</option>
             </select>
           </div>
           <div class="form-group">
@@ -48,8 +51,28 @@
       <div class="report-content">
         <% if (reportType === 'attendance' && reportData.attendance) { %>
           <h2>Attendance Report</h2>
+          
+          <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+              <h3>Total Present</h3>
+              <p class="stat-number"><%= reportData.attendanceStats.totalPresent %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Total Absent</h3>
+              <p class="stat-number"><%= reportData.attendanceStats.totalAbsent %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Total Leave</h3>
+              <p class="stat-number"><%= reportData.attendanceStats.totalLeave %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Total Records</h3>
+              <p class="stat-number"><%= reportData.attendance.length %></p>
+            </div>
+          </div>
+          
           <div class="table-container">
-            <table class="data-table">
+            <table class="data-table" id="attendanceTable">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -78,7 +101,7 @@
         
         <% if (reportType === 'financial' && reportData.financial) { %>
           <h2>Financial Report</h2>
-          <div class="stats-grid">
+          <div class="stats-grid" style="margin-bottom: 2rem;">
             <div class="stat-card">
               <h3>Total Revenue (Paid)</h3>
               <p class="stat-number">D <%= reportData.financial.totalRevenue.toLocaleString() %></p>
@@ -89,23 +112,24 @@
             </div>
             <div class="stat-card">
               <h3>Total Contracts</h3>
-              <p class="stat-number"><%= reportData.financial.contracts.length %></p>
+              <p class="stat-number"><%= reportData.financial.totalContracts %></p>
             </div>
             <div class="stat-card">
               <h3>Total Services</h3>
-              <p class="stat-number"><%= reportData.financial.services.length %></p>
+              <p class="stat-number"><%= reportData.financial.totalServices %></p>
             </div>
           </div>
           
           <h3>Contracts</h3>
           <div class="table-container">
-            <table class="data-table">
+            <table class="data-table" id="contractsTable">
               <thead>
                 <tr>
                   <th>Client</th>
                   <th>Service Type</th>
                   <th>Fee</th>
                   <th>Payment Status</th>
+                  <th>Contract Status</th>
                   <th>Date</th>
                 </tr>
               </thead>
@@ -114,9 +138,38 @@
                   <tr>
                     <td><%= contract.clientName %></td>
                     <td><%= contract.serviceType %></td>
-                    <td>D <%= contract.totalFee %></td>
+                    <td>D <%= contract.totalFee.toLocaleString() %></td>
                     <td><span class="badge badge-<%= contract.paymentStatus %>"><%= contract.paymentStatus %></span></td>
+                    <td><span class="badge badge-<%= contract.status %>"><%= contract.status %></span></td>
                     <td><%= new Date(contract.createdAt).toLocaleDateString() %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+          
+          <h3 style="margin-top: 2rem;">Services</h3>
+          <div class="table-container">
+            <table class="data-table" id="servicesTable">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Service Type</th>
+                  <th>Fee</th>
+                  <th>Payment Status</th>
+                  <th>Service Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% reportData.financial.services.forEach(service => { %>
+                  <tr>
+                    <td><%= service.clientName %></td>
+                    <td><%= service.serviceType %></td>
+                    <td>D <%= service.totalFee.toLocaleString() %></td>
+                    <td><span class="badge badge-<%= service.paymentStatus %>"><%= service.paymentStatus %></span></td>
+                    <td><span class="badge badge-<%= service.status %>"><%= service.status %></span></td>
+                    <td><%= new Date(service.createdAt).toLocaleDateString() %></td>
                   </tr>
                 <% }) %>
               </tbody>
@@ -127,60 +180,229 @@
         <% if (reportType === 'deployment' && reportData.deployment) { %>
           <h2>Staff Deployment Report</h2>
           
-          <h3>Contract Assignments</h3>
+          <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+              <h3>Total Deployments</h3>
+              <p class="stat-number"><%= reportData.deployment.totalDeployments %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Transportation Cost</h3>
+              <p class="stat-number">D <%= reportData.deployment.totalTransportCost.toLocaleString() %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Public Transport</h3>
+              <p class="stat-number"><%= reportData.deployment.deploymentsByMethod['public-transport'] %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Vehicle Transport</h3>
+              <p class="stat-number"><%= reportData.deployment.deploymentsByMethod['personal-vehicle'] + reportData.deployment.deploymentsByMethod['company-vehicle'] %></p>
+            </div>
+          </div>
+          
+          <h3>All Deployments</h3>
           <div class="table-container">
-            <table class="data-table">
+            <table class="data-table" id="deploymentsTable">
               <thead>
                 <tr>
+                  <th>Date</th>
+                  <th>Staff Name</th>
                   <th>Client</th>
                   <th>Service Type</th>
-                  <th>Assigned Staff</th>
+                  <th>Transportation</th>
+                  <th>Cost</th>
                   <th>Status</th>
-                  <th>Start Date</th>
                 </tr>
               </thead>
               <tbody>
-                <% reportData.deployment.contracts.forEach(contract => { %>
+                <% reportData.deployment.deployments.forEach(deployment => { %>
                   <tr>
-                    <td><%= contract.clientName %></td>
-                    <td><%= contract.serviceType %></td>
-                    <td>
-                      <% contract.assignedStaff && contract.assignedStaff.forEach(staff => { %>
-                        <%= staff.name %> (<%= staff.specialization %>)<br>
-                      <% }) %>
-                    </td>
-                    <td><span class="badge badge-<%= contract.status %>"><%= contract.status %></span></td>
-                    <td><%= new Date(contract.startDate).toLocaleDateString() %></td>
+                    <td><%= new Date(deployment.deploymentDate).toLocaleDateString() %></td>
+                    <td><%= deployment.staff.name %> (<%= deployment.staff.specialization %>)</td>
+                    <td><%= deployment.contract ? deployment.contract.clientName : (deployment.service ? deployment.service.clientName : 'N/A') %></td>
+                    <td><%= deployment.contract ? deployment.contract.serviceType : (deployment.service ? deployment.service.serviceType : 'N/A') %></td>
+                    <td><span class="badge badge-info"><%= deployment.transportationMethod %></span></td>
+                    <td>D <%= (deployment.transportationCost || 0).toLocaleString() %></td>
+                    <td><span class="badge badge-<%= deployment.status %>"><%= deployment.status %></span></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+        
+        <% if (reportType === 'breakfast' && reportData.breakfast) { %>
+          <h2>Breakfast Expenses Report</h2>
+          
+          <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+              <h3>Total Cost</h3>
+              <p class="stat-number">D <%= reportData.breakfast.totalBreakfastCost.toLocaleString() %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Average Per Staff</h3>
+              <p class="stat-number">D <%= reportData.breakfast.averagePerStaff.toFixed(2) %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Total Records</h3>
+              <p class="stat-number"><%= reportData.breakfast.totalRecords %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Period</h3>
+              <p class="stat-number" style="font-size: 1rem;"><%= startDate || 'All' %> to <%= endDate || 'All' %></p>
+            </div>
+          </div>
+          
+          <div class="table-container">
+            <table class="data-table" id="breakfastTable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Staff Name</th>
+                  <th>Specialization</th>
+                  <th>Amount</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% reportData.breakfast.breakfastRecords.forEach(record => { %>
+                  <tr>
+                    <td><%= new Date(record.date).toLocaleDateString() %></td>
+                    <td><%= record.staff.name %></td>
+                    <td><%= record.staff.specialization %></td>
+                    <td>D <%= record.amount.toLocaleString() %></td>
+                    <td><%= record.notes || 'N/A' %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+        
+        <% if (reportType === 'staff' && reportData.staff) { %>
+          <h2>Staff Report</h2>
+          
+          <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+              <h3>Total Staff</h3>
+              <p class="stat-number"><%= reportData.staff.totalStaff %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Active Staff</h3>
+              <p class="stat-number"><%= reportData.staff.activeStaff %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Inactive Staff</h3>
+              <p class="stat-number"><%= reportData.staff.inactiveStaff %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Both Specialization</h3>
+              <p class="stat-number"><%= reportData.staff.staffBySpecialization.both %></p>
+            </div>
+          </div>
+          
+          <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+              <h3>Electrical</h3>
+              <p class="stat-number"><%= reportData.staff.staffBySpecialization.electrical %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Plumbing</h3>
+              <p class="stat-number"><%= reportData.staff.staffBySpecialization.plumbing %></p>
+            </div>
+          </div>
+          
+          <div class="table-container">
+            <table class="data-table" id="staffTable">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Specialization</th>
+                  <th>Status</th>
+                  <th>Date Joined</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% reportData.staff.staff.forEach(member => { %>
+                  <tr>
+                    <td><%= member.name %></td>
+                    <td><%= member.phone %></td>
+                    <td><%= member.email || 'N/A' %></td>
+                    <td><span class="badge badge-<%= member.specialization %>"><%= member.specialization %></span></td>
+                    <td><span class="badge badge-<%= member.status %>"><%= member.status %></span></td>
+                    <td><%= new Date(member.dateJoined).toLocaleDateString() %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+        
+        <% if (reportType === 'expenses' && reportData.expenses) { %>
+          <h2>Total Expenses Report</h2>
+          
+          <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+              <h3>Total Expenses</h3>
+              <p class="stat-number">D <%= reportData.expenses.totalExpenses.toLocaleString() %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Breakfast Expenses</h3>
+              <p class="stat-number">D <%= reportData.expenses.totalBreakfast.toLocaleString() %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Transportation Expenses</h3>
+              <p class="stat-number">D <%= reportData.expenses.totalTransport.toLocaleString() %></p>
+            </div>
+            <div class="stat-card">
+              <h3>Period</h3>
+              <p class="stat-number" style="font-size: 1rem;"><%= startDate || 'All' %> to <%= endDate || 'All' %></p>
+            </div>
+          </div>
+          
+          <h3>Breakfast Expenses Breakdown</h3>
+          <div class="table-container">
+            <table class="data-table" id="breakfastExpensesTable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Staff Name</th>
+                  <th>Amount</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% reportData.expenses.breakfastRecords.forEach(record => { %>
+                  <tr>
+                    <td><%= new Date(record.date).toLocaleDateString() %></td>
+                    <td><%= record.staff.name %></td>
+                    <td>D <%= record.amount.toLocaleString() %></td>
+                    <td><%= record.notes || 'N/A' %></td>
                   </tr>
                 <% }) %>
               </tbody>
             </table>
           </div>
           
-          <h3>Service Assignments</h3>
+          <h3 style="margin-top: 2rem;">Transportation Expenses Breakdown</h3>
           <div class="table-container">
-            <table class="data-table">
+            <table class="data-table" id="transportExpensesTable">
               <thead>
                 <tr>
-                  <th>Client</th>
-                  <th>Service Type</th>
-                  <th>Assigned Staff</th>
-                  <th>Status</th>
-                  <th>Service Date</th>
+                  <th>Date</th>
+                  <th>Staff Name</th>
+                  <th>Transportation Method</th>
+                  <th>Amount</th>
                 </tr>
               </thead>
               <tbody>
-                <% reportData.deployment.services.forEach(service => { %>
+                <% reportData.expenses.deployments.forEach(deployment => { %>
                   <tr>
-                    <td><%= service.clientName %></td>
-                    <td><%= service.serviceType %></td>
-                    <td>
-                      <% service.assignedStaff && service.assignedStaff.forEach(staff => { %>
-                        <%= staff.name %> (<%= staff.specialization %>)<br>
-                      <% }) %>
-                    </td>
-                    <td><span class="badge badge-<%= service.status %>"><%= service.status %></span></td>
-                    <td><%= new Date(service.serviceDate).toLocaleDateString() %></td>
+                    <td><%= new Date(deployment.deploymentDate).toLocaleDateString() %></td>
+                    <td><%= deployment.staff.name %></td>
+                    <td><span class="badge badge-info"><%= deployment.transportationMethod %></span></td>
+                    <td>D <%= (deployment.transportationCost || 0).toLocaleString() %></td>
                   </tr>
                 <% }) %>
               </tbody>
