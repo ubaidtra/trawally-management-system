@@ -34,3 +34,5 @@ messageSchema.index({ recipient: 1, isRead: 1 });
 
 module.exports = mongoose.model('Message', messageSchema);
 
+
+

@@ -4,6 +4,8 @@ const Service = require('../models/Service');
 const Attendance = require('../models/Attendance');
 const Breakfast = require('../models/Breakfast');
 const Deployment = require('../models/Deployment');
+const InventoryItem = require('../models/InventoryItem');
+const Sale = require('../models/Sale');
 
 exports.showDashboard = async (req, res) => {
   try {
@@ -198,6 +200,49 @@ exports.showReports = async (req, res) => {
         totalTransport,
         totalExpenses
       };
+    } else if (reportType === 'inventory') {
+      const items = await InventoryItem.find().sort({ itemId: 1 }).lean();
+      const totalSku = items.length;
+      const totalUnits = items.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0);
+      const stockValue = Math.round(
+        items.reduce((sum, i) => sum + (Number(i.quantity) || 0) * (Number(i.price) || 0), 0) * 100
+      ) / 100;
+      reportData.inventory = { items, totalSku, totalUnits, stockValue };
+    } else if (reportType === 'sales') {
+      const query = {};
+      if (startDate && endDate) {
+        query.createdAt = {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate + 'T23:59:59.999Z')
+        };
+      } else if (startDate) {
+        query.createdAt = { $gte: new Date(startDate) };
+      } else if (endDate) {
+        query.createdAt = { $lte: new Date(endDate + 'T23:59:59.999Z') };
+      }
+      const sales = await Sale.find(query).sort({ createdAt: -1 }).lean();
+      const totalRevenue = Math.round(sales.reduce((sum, s) => sum + (Number(s.total) || 0), 0) * 100) / 100;
+      const saleCount = sales.length;
+      const totalUnitsSold = sales.reduce(
+        (sum, s) => sum + (s.lines || []).reduce((ls, l) => ls + (Number(l.quantity) || 0), 0),
+        0
+      );
+      const lineRows = [];
+      sales.forEach((s) => {
+        (s.lines || []).forEach((line) => {
+          lineRows.push({
+            saleAt: s.createdAt,
+            saleId: s._id,
+            itemId: line.itemId,
+            name: line.name,
+            itemType: line.itemType,
+            quantity: line.quantity,
+            unitPrice: line.unitPrice,
+            lineTotal: line.lineTotal
+          });
+        });
+      });
+      reportData.sales = { sales, lineRows, totalRevenue, saleCount, totalUnitsSold };
     }
     
     res.render('ceo/reports', {

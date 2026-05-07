@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <%- include('../partials/sidebar') %>
+    <div class="main-content">
+      <div class="content-header">
+        <h1>Inventory</h1>
+        <div class="header-actions">
+          <button type="button" class="btn btn-primary" onclick="toggleModal('addItemModal')">Add item</button>
+        </div>
+      </div>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
+
+      <div class="search-filter-bar">
+        <input type="text" class="search-input" data-table="inventoryTable" placeholder="Filter table...">
+        <span class="table-count" data-count="inventoryTable"><%= items.length %> items</span>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table" id="inventoryTable">
+          <thead>
+            <tr>
+              <th data-sort="itemid" data-table="inventoryTable">Item ID</th>
+              <th data-sort="name" data-table="inventoryTable">Item name</th>
+              <th data-sort="type" data-table="inventoryTable">Item type</th>
+              <th data-sort="qty" data-table="inventoryTable">Quantity</th>
+              <th data-sort="price" data-table="inventoryTable">Price</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% items.forEach(function(it) { %>
+              <tr>
+                <td data-filter="itemid"><%= it.itemId %></td>
+                <td data-filter="name"><%= it.name %></td>
+                <td data-filter="type"><%= it.itemType %></td>
+                <td data-filter="qty"><%= it.quantity %></td>
+                <td data-filter="price">D <%= Number(it.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+                <td>
+                  <div class="action-buttons">
+                    <button type="button" class="btn btn-sm btn-primary" onclick='openEditModal(<%- JSON.stringify({ _id: String(it._id), itemId: it.itemId, name: it.name, itemType: it.itemType, quantity: it.quantity, price: it.price }) %>)'>Edit</button>
+                    <form action="/admin/inventory/<%= it._id %>?_method=DELETE" method="POST" style="display:inline" onsubmit="return confirm('Delete this item?')">
+                      <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="addItemModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add inventory item</h2>
+        <span class="close" onclick="toggleModal('addItemModal')">&times;</span>
+      </div>
+      <form action="/admin/inventory" method="POST">
+        <div class="form-group">
+          <label for="add_itemId">Item ID</label>
+          <input type="text" id="add_itemId" name="itemId" required>
+        </div>
+        <div class="form-group">
+          <label for="add_name">Item name</label>
+          <input type="text" id="add_name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="add_itemType">Item type</label>
+          <input type="text" id="add_itemType" name="itemType" required placeholder="e.g. Cable, Fitting">
+        </div>
+        <div class="form-group">
+          <label for="add_quantity">Quantity</label>
+          <input type="number" id="add_quantity" name="quantity" min="0" step="1" required>
+        </div>
+        <div class="form-group">
+          <label for="add_price">Price (unit)</label>
+          <input type="number" id="add_price" name="price" min="0" step="0.01" required>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="toggleModal('addItemModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="editItemModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit item</h2>
+        <span class="close" onclick="toggleModal('editItemModal')">&times;</span>
+      </div>
+      <form id="editItemForm" method="POST">
+        <input type="hidden" name="_method" value="PATCH">
+        <div class="form-group">
+          <label>Item ID</label>
+          <input type="text" id="edit_itemId_display" readonly disabled style="background:#f3f4f6">
+        </div>
+        <div class="form-group">
+          <label for="edit_name">Item name</label>
+          <input type="text" id="edit_name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_itemType">Item type</label>
+          <input type="text" id="edit_itemType" name="itemType" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_quantity">Quantity</label>
+          <input type="number" id="edit_quantity" name="quantity" min="0" step="1" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_price">Price (unit)</label>
+          <input type="number" id="edit_price" name="price" min="0" step="0.01" required>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="toggleModal('editItemModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    function openEditModal(it) {
+      document.getElementById('editItemForm').action = '/admin/inventory/' + it._id;
+      document.getElementById('edit_itemId_display').value = it.itemId;
+      document.getElementById('edit_name').value = it.name;
+      document.getElementById('edit_itemType').value = it.itemType;
+      document.getElementById('edit_quantity').value = it.quantity;
+      document.getElementById('edit_price').value = it.price;
+      toggleModal('editItemModal');
+    }
+  </script>
+</body>
+</html>

@@ -34,6 +34,8 @@
               <option value="breakfast" <%= reportType === 'breakfast' ? 'selected' : '' %>>Breakfast Expenses</option>
               <option value="staff" <%= reportType === 'staff' ? 'selected' : '' %>>Staff Report</option>
               <option value="expenses" <%= reportType === 'expenses' ? 'selected' : '' %>>Total Expenses Report</option>
+              <option value="inventory" <%= reportType === 'inventory' ? 'selected' : '' %>>Inventory (stock)</option>
+              <option value="sales" <%= reportType === 'sales' ? 'selected' : '' %>>Sales (shop)</option>
             </select>
           </div>
           <div class="form-group">
@@ -409,6 +411,127 @@
             </table>
           </div>
         <% } %>
+        
+    <% if (reportType === 'inventory' && reportData.inventory) { %>
+      <h2>Inventory report</h2>
+      <p style="color:#666;margin-bottom:1rem;font-size:0.9rem;">Current stock levels. Date filters do not apply to this view.</p>
+      <div class="stats-grid" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <h3>SKU count</h3>
+          <p class="stat-number"><%= reportData.inventory.totalSku %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Total units</h3>
+          <p class="stat-number"><%= reportData.inventory.totalUnits %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Stock value</h3>
+          <p class="stat-number">D <%= reportData.inventory.stockValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></p>
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="data-table" id="inventoryReportTable">
+          <thead>
+            <tr>
+              <th>Item ID</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Quantity</th>
+              <th>Unit price</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% reportData.inventory.items.forEach(item => { %>
+              <tr>
+                <td><%= item.itemId %></td>
+                <td><%= item.name %></td>
+                <td><%= item.itemType %></td>
+                <td><%= item.quantity %></td>
+                <td>D <%= Number(item.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+                <td>D <%= (Number(item.quantity) * Number(item.price)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+    
+    <% if (reportType === 'sales' && reportData.sales) { %>
+      <h2>Sales report</h2>
+      <div class="stats-grid" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <h3>Transactions</h3>
+          <p class="stat-number"><%= reportData.sales.saleCount %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Units sold</h3>
+          <p class="stat-number"><%= reportData.sales.totalUnitsSold %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Revenue</h3>
+          <p class="stat-number">D <%= reportData.sales.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></p>
+        </div>
+        <div class="stat-card">
+          <h3>Period</h3>
+          <p class="stat-number" style="font-size: 1rem;"><%= startDate || 'All' %> to <%= endDate || 'All' %></p>
+        </div>
+      </div>
+      <h3>By transaction</h3>
+      <div class="table-container">
+        <table class="data-table" id="salesSummaryTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Sale ID</th>
+              <th>Line items</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% reportData.sales.sales.forEach(sale => { %>
+              <tr>
+                <td><%= new Date(sale.createdAt).toLocaleString() %></td>
+                <td><%= String(sale._id) %></td>
+                <td><%= sale.lines.length %></td>
+                <td>D <%= Number(sale.total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <h3 style="margin-top: 2rem;">Line detail</h3>
+      <div class="table-container">
+        <table class="data-table" id="salesLinesTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Sale ID</th>
+              <th>Item ID</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Qty</th>
+              <th>Unit</th>
+              <th>Line total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% reportData.sales.lineRows.forEach(row => { %>
+              <tr>
+                <td><%= new Date(row.saleAt).toLocaleString() %></td>
+                <td><%= String(row.saleId) %></td>
+                <td><%= row.itemId %></td>
+                <td><%= row.name %></td>
+                <td><%= row.itemType %></td>
+                <td><%= row.quantity %></td>
+                <td>D <%= Number(row.unitPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+                <td>D <%= Number(row.lineTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
         
       </div>
     </div>

@@ -8,6 +8,8 @@ const contractController = require('../controllers/contractController');
 const serviceController = require('../controllers/serviceController');
 const invoiceController = require('../controllers/invoiceController');
 const messageController = require('../controllers/messageController');
+const inventoryController = require('../controllers/inventoryController');
+const saleController = require('../controllers/saleController');
 const { isAuthenticated } = require('../middleware/auth');
 const checkRole = require('../middleware/roleCheck');
 
@@ -49,6 +51,16 @@ router.get('/messages', messageController.showMessages);
 router.post('/messages', messageController.sendMessage);
 router.patch('/messages/:id/read', messageController.markAsRead);
 router.delete('/messages/:id', messageController.deleteMessage);
+
+router.get('/inventory', inventoryController.showInventory);
+router.post('/inventory', inventoryController.createItem);
+router.get('/inventory/search', inventoryController.searchItems);
+router.patch('/inventory/:id', inventoryController.updateItem);
+router.delete('/inventory/:id', inventoryController.deleteItem);
+
+router.get('/sales', saleController.showSales);
+router.post('/sales', saleController.createSale);
+router.get('/sales/:id/receipt', saleController.printSaleReceipt);
 
 module.exports = router;
 

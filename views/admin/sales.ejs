@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <%- include('../partials/sidebar') %>
+    <div class="main-content">
+      <div class="content-header">
+        <h1>Sales</h1>
+      </div>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
+
+      <div class="dashboard-section" style="margin-bottom: 2rem;">
+        <h2>Record sale</h2>
+        <p style="color:#555;font-size:0.9rem;margin-bottom:1rem;">Search by item ID or name, set quantity, add lines, then record the sale. Stock updates automatically.</p>
+
+        <div class="form-group">
+          <label for="itemSearch">Search item</label>
+          <input type="text" id="itemSearch" autocomplete="off" placeholder="Type item ID or name...">
+        </div>
+        <div id="searchResults" class="search-results-box" style="display:none;margin-bottom:1rem;border:1px solid #d1d5db;border-radius:6px;max-height:220px;overflow:auto;background:#fff;"></div>
+
+        <div id="selectedPanel" style="display:none;margin-bottom:1rem;padding:1rem;background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb;">
+          <h3 style="font-size:1rem;margin:0 0 0.75rem;">Line details</h3>
+          <div class="form-row" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.75rem;align-items:end;">
+            <div class="form-group" style="margin:0;">
+              <label>Item ID</label>
+              <input type="text" id="line_itemId" readonly style="background:#e5e7eb;">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>Item name</label>
+              <input type="text" id="line_name" readonly style="background:#e5e7eb;">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>Item type</label>
+              <input type="text" id="line_type" readonly style="background:#e5e7eb;">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>Unit price</label>
+              <input type="text" id="line_price" readonly style="background:#e5e7eb;">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label for="line_qty">Quantity</label>
+              <input type="number" id="line_qty" min="1" step="1" value="1">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>Stock</label>
+              <input type="text" id="line_stock" readonly style="background:#e5e7eb;">
+            </div>
+            <div>
+              <button type="button" class="btn btn-primary" id="btnAddLine">Add to sale</button>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="font-size:1rem;">Sale lines</h3>
+        <div class="table-container">
+          <table class="data-table" id="cartTable">
+            <thead>
+              <tr>
+                <th>Item ID</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Qty</th>
+                <th>Unit price</th>
+                <th>Line total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cartBody"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5" style="text-align:right;font-weight:600;">Total</td>
+                <td id="cartTotal" style="font-weight:600;">D 0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="form-actions" style="margin-top:1rem;">
+          <button type="button" class="btn btn-primary" id="btnSubmitSale">Record sale</button>
+          <button type="button" class="btn btn-secondary" id="btnClearCart">Clear lines</button>
+        </div>
+        <p id="saleMessage" style="margin-top:0.75rem;"></p>
+      </div>
+
+      <div class="dashboard-section">
+        <h2>Recent sales</h2>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Lines</th>
+                <th>Total</th>
+                <th>Receipt</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% sales.forEach(function(s) { %>
+                <tr>
+                  <td><%= new Date(s.createdAt).toLocaleString() %></td>
+                  <td><%= s.lines.length %> item type(s)</td>
+                  <td>D <%= Number(s.total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+                  <td>
+                    <a class="btn btn-sm btn-info" href="/admin/sales/<%= s._id %>/receipt" target="_blank" rel="noopener">Print / download</a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+(function () {
+  let selected = null;
+  const cart = [];
+  const searchInput = document.getElementById('itemSearch');
+  const searchBox = document.getElementById('searchResults');
+  const panel = document.getElementById('selectedPanel');
+  let searchTimer = null;
+
+  function money(n) {
+    return 'D ' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function round2(n) {
+    return Math.round(n * 100) / 100;
+  }
+
+  function renderCart() {
+    const tbody = document.getElementById('cartBody');
+    tbody.innerHTML = '';
+    let total = 0;
+    cart.forEach(function (row, idx) {
+      const line = round2(row.price * row.qty);
+      total += line;
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + escapeHtml(row.itemId) + '</td>' +
+        '<td>' + escapeHtml(row.name) + '</td>' +
+        '<td>' + escapeHtml(row.itemType) + '</td>' +
+        '<td><input type="number" min="1" step="1" data-idx="' + idx + '" class="cart-qty" value="' + row.qty + '" style="width:4.5rem;padding:0.35rem"></td>' +
+        '<td>' + money(row.price) + '</td>' +
+        '<td class="line-total">' + money(line) + '</td>' +
+        '<td><button type="button" class="btn btn-sm btn-danger" data-remove="' + idx + '">Remove</button></td>';
+      tbody.appendChild(tr);
+    });
+    document.getElementById('cartTotal').textContent = money(round2(total));
+
+    tbody.querySelectorAll('.cart-qty').forEach(function (inp) {
+      inp.addEventListener('change', function () {
+        const i = parseInt(inp.dataset.idx, 10);
+        const max = cart[i].stockAtAdd;
+        let v = parseInt(inp.value, 10);
+        if (!Number.isFinite(v) || v < 1) v = 1;
+        const otherSame = cart.reduce(function (sum, r, j) {
+          if (j !== i && String(r._id) === String(cart[i]._id)) return sum + r.qty;
+          return sum;
+        }, 0);
+        const cap = max - otherSame;
+        if (v > cap) {
+          v = cap;
+          inp.value = v;
+        }
+        cart[i].qty = v;
+        renderCart();
+      });
+    });
+    tbody.querySelectorAll('[data-remove]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        cart.splice(parseInt(btn.dataset.remove, 10), 1);
+        renderCart();
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function pickItem(it) {
+    selected = it;
+    panel.style.display = 'block';
+    document.getElementById('line_itemId').value = it.itemId;
+    document.getElementById('line_name').value = it.name;
+    document.getElementById('line_type').value = it.itemType;
+    document.getElementById('line_price').value = money(it.price);
+    document.getElementById('line_stock').value = String(it.quantity);
+    document.getElementById('line_qty').value = '1';
+    document.getElementById('line_qty').max = String(it.quantity);
+    searchBox.style.display = 'none';
+    searchBox.innerHTML = '';
+  }
+
+  searchInput.addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    const q = searchInput.value.trim();
+    if (q.length < 1) {
+      searchBox.style.display = 'none';
+      searchBox.innerHTML = '';
+      return;
+    }
+    searchTimer = setTimeout(function () {
+      fetch('/admin/inventory/search?q=' + encodeURIComponent(q))
+        .then(function (r) { return r.json(); })
+        .then(function (rows) {
+          if (!Array.isArray(rows)) return;
+          searchBox.innerHTML = '';
+          if (rows.length === 0) {
+            searchBox.innerHTML = '<div style="padding:0.75rem;color:#666">No matches</div>';
+          } else {
+            rows.forEach(function (it) {
+              const div = document.createElement('div');
+              div.style.padding = '0.6rem 0.75rem';
+              div.style.cursor = 'pointer';
+              div.style.borderBottom = '1px solid #eee';
+              div.textContent = it.itemId + ' — ' + it.name + ' (stock ' + it.quantity + ', ' + money(it.price) + ')';
+              div.addEventListener('click', function () { pickItem(it); });
+              searchBox.appendChild(div);
+            });
+          }
+          searchBox.style.display = 'block';
+        })
+        .catch(function () {});
+    }, 250);
+  });
+
+  document.getElementById('btnAddLine').addEventListener('click', function () {
+    if (!selected) return;
+    const qty = parseInt(document.getElementById('line_qty').value, 10);
+    if (!Number.isFinite(qty) || qty < 1) {
+      alert('Enter a valid quantity');
+      return;
+    }
+    const existing = cart.findIndex(function (r) { return String(r._id) === String(selected._id); });
+    const otherSame = cart.reduce(function (sum, r, j) {
+      if (String(r._id) === String(selected._id)) return sum + r.qty;
+      return sum;
+    }, 0);
+    if (otherSame + qty > selected.quantity) {
+      alert('Not enough stock. Available: ' + selected.quantity + ', already in cart: ' + otherSame);
+      return;
+    }
+    if (existing >= 0) {
+      cart[existing].qty += qty;
+    } else {
+      cart.push({
+        _id: selected._id,
+        itemId: selected.itemId,
+        name: selected.name,
+        itemType: selected.itemType,
+        price: selected.price,
+        qty: qty,
+        stockAtAdd: selected.quantity
+      });
+    }
+    renderCart();
+    document.getElementById('saleMessage').textContent = '';
+  });
+
+  document.getElementById('btnClearCart').addEventListener('click', function () {
+    cart.length = 0;
+    renderCart();
+    document.getElementById('saleMessage').textContent = '';
+  });
+
+  document.getElementById('btnSubmitSale').addEventListener('click', function () {
+    if (cart.length === 0) {
+      alert('Add at least one line to the sale');
+      return;
+    }
+    const msg = document.getElementById('saleMessage');
+    msg.textContent = 'Saving...';
+    const payload = cart.map(function (r) {
+      return { inventoryItemId: r._id, quantity: r.qty };
+    });
+    fetch('/admin/sales', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ items: payload })
+    })
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (res) {
+        if (!res.ok) {
+          msg.textContent = '';
+          alert(res.data.error || 'Sale failed');
+          return;
+        }
+        msg.textContent = 'Sale recorded. Total ' + money(res.data.total);
+        window.open('/admin/sales/' + res.data.saleId + '/receipt', '_blank');
+        cart.length = 0;
+        selected = null;
+        panel.style.display = 'none';
+        searchInput.value = '';
+        renderCart();
+        setTimeout(function () { window.location.reload(); }, 800);
+      })
+      .catch(function () {
+        msg.textContent = '';
+        alert('Network error');
+      });
+  });
+
+  renderCart();
+})();
+  </script>
+</body>
+</html>

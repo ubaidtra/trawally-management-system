@@ -46,6 +46,16 @@
           </a>
         </li>
         <li>
+          <a href="/admin/inventory" class="<%= currentPage === 'inventory' ? 'active' : '' %>">
+            Inventory
+          </a>
+        </li>
+        <li>
+          <a href="/admin/sales" class="<%= currentPage === 'sales' ? 'active' : '' %>">
+            Sales
+          </a>
+        </li>
+        <li>
           <a href="/admin/messages" class="<%= currentPage === 'messages' ? 'active' : '' %>">
             Messages
           </a>
@@ -54,8 +64,18 @@
       
       <% if (user.role === 'ceo') { %>
         <li>
-          <a href="/ceo/reports" class="<%= currentPage === 'reports' ? 'active' : '' %>">
+          <a href="/ceo/reports" class="<%= currentPage === 'reports' && reportType !== 'inventory' && reportType !== 'sales' ? 'active' : '' %>">
             Reports
+          </a>
+        </li>
+        <li>
+          <a href="/ceo/reports?reportType=inventory" class="<%= currentPage === 'reports' && reportType === 'inventory' ? 'active' : '' %>">
+            Inventory
+          </a>
+        </li>
+        <li>
+          <a href="/ceo/reports?reportType=sales" class="<%= currentPage === 'reports' && reportType === 'sales' ? 'active' : '' %>">
+            Sales
           </a>
         </li>
         <li>
