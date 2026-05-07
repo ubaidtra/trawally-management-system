@@ -1,6 +1,12 @@
 const InventoryItem = require('../models/InventoryItem');
 const Sale = require('../models/Sale');
 
+const RECEIPT_COMPANY = {
+  name: 'Trawally Electrics & Plumbing Company',
+  phones: ['+220 398 0627', '+220 798 0698'],
+  hours: 'Mon–Fri 8:00 AM – 6:00 PM · Sat 9:00 AM – 4:00 PM · Sun emergency only'
+};
+
 exports.showSales = async (req, res) => {
   try {
     const sales = await Sale.find()
@@ -144,6 +150,8 @@ function receiptHtml(sale) {
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #111; }
     h1 { font-size: 1.35rem; margin-bottom: 0.25rem; }
+    .company-contact { color: #444; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
+    .company-contact strong { color: #111; }
     .meta { color: #555; font-size: 0.9rem; margin-bottom: 1.5rem; }
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th, td { border: 1px solid #ccc; padding: 0.5rem 0.6rem; text-align: left; }
@@ -157,7 +165,11 @@ function receiptHtml(sale) {
   </style>
 </head>
 <body>
-  <h1>Trawally Electric &amp; Plumbing</h1>
+  <h1>${escapeHtml(RECEIPT_COMPANY.name)}</h1>
+  <div class="company-contact">
+    <strong>Phone:</strong> ${escapeHtml(RECEIPT_COMPANY.phones.join(' · '))}<br>
+    <strong>Hours:</strong> ${escapeHtml(RECEIPT_COMPANY.hours)}
+  </div>
   <p class="meta">Sale receipt &middot; ${escapeHtml(date)}<br>Buyer: <strong>${buyer}</strong><br>Reference: ${escapeHtml(String(sale._id))}</p>
   <table>
     <thead>
