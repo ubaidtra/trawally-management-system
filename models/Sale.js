@@ -24,6 +24,11 @@ const saleSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+  buyerName: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

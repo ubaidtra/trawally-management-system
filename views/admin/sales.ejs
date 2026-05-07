@@ -26,6 +26,11 @@
         <p style="color:#555;font-size:0.9rem;margin-bottom:1rem;">Search by item ID or name, set quantity, add lines, then record the sale. Stock updates automatically.</p>
 
         <div class="form-group">
+          <label for="buyerName">Buyer name</label>
+          <input type="text" id="buyerName" autocomplete="name" required placeholder="Customer / buyer full name">
+        </div>
+
+        <div class="form-group">
           <label for="itemSearch">Search item</label>
           <input type="text" id="itemSearch" autocomplete="off" placeholder="Type item ID or name...">
         </div>
@@ -103,6 +108,7 @@
             <thead>
               <tr>
                 <th>Date</th>
+                <th>Buyer</th>
                 <th>Lines</th>
                 <th>Total</th>
                 <th>Receipt</th>
@@ -112,6 +118,7 @@
               <% sales.forEach(function(s) { %>
                 <tr>
                   <td><%= new Date(s.createdAt).toLocaleString() %></td>
+                  <td><%= s.buyerName || '—' %></td>
                   <td><%= s.lines.length %> item type(s)</td>
                   <td>D <%= Number(s.total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                   <td>
@@ -288,6 +295,13 @@
       alert('Add at least one line to the sale');
       return;
     }
+    const buyerEl = document.getElementById('buyerName');
+    const buyerName = (buyerEl && buyerEl.value) ? buyerEl.value.trim() : '';
+    if (!buyerName) {
+      alert('Enter the buyer name');
+      if (buyerEl) buyerEl.focus();
+      return;
+    }
     const msg = document.getElementById('saleMessage');
     msg.textContent = 'Saving...';
     const payload = cart.map(function (r) {
@@ -296,7 +310,7 @@
     fetch('/admin/sales', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ items: payload })
+      body: JSON.stringify({ buyerName: buyerName, items: payload })
     })
       .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
       .then(function (res) {
@@ -311,6 +325,7 @@
         selected = null;
         panel.style.display = 'none';
         searchInput.value = '';
+        if (buyerEl) buyerEl.value = '';
         renderCart();
         setTimeout(function () { window.location.reload(); }, 800);
       })

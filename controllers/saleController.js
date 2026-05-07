@@ -24,6 +24,12 @@ exports.showSales = async (req, res) => {
 };
 
 exports.createSale = async (req, res) => {
+  const buyerName =
+    typeof req.body.buyerName === 'string' ? req.body.buyerName.trim() : '';
+  if (!buyerName) {
+    return res.status(400).json({ error: 'Buyer name is required' });
+  }
+
   const itemsPayload = req.body.items;
   if (!Array.isArray(itemsPayload) || itemsPayload.length === 0) {
     return res.status(400).json({ error: 'Add at least one item to the sale' });
@@ -72,6 +78,7 @@ exports.createSale = async (req, res) => {
     const sale = await Sale.create({
       lines,
       total,
+      buyerName,
       createdBy: req.session.user.id
     });
 
@@ -111,6 +118,10 @@ exports.printSaleReceipt = async (req, res) => {
 
 function receiptHtml(sale) {
   const date = new Date(sale.createdAt).toLocaleString();
+  const buyer =
+    sale.buyerName && String(sale.buyerName).trim()
+      ? escapeHtml(String(sale.buyerName).trim())
+      : '—';
   const rows = sale.lines
     .map(
       (l) => `
@@ -147,7 +158,7 @@ function receiptHtml(sale) {
 </head>
 <body>
   <h1>Trawally Electric &amp; Plumbing</h1>
-  <p class="meta">Sale receipt &middot; ${escapeHtml(date)}<br>Reference: ${escapeHtml(String(sale._id))}</p>
+  <p class="meta">Sale receipt &middot; ${escapeHtml(date)}<br>Buyer: <strong>${buyer}</strong><br>Reference: ${escapeHtml(String(sale._id))}</p>
   <table>
     <thead>
       <tr>

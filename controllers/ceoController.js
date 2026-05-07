@@ -233,6 +233,7 @@ exports.showReports = async (req, res) => {
           lineRows.push({
             saleAt: s.createdAt,
             saleId: s._id,
+            buyerName: s.buyerName || '',
             itemId: line.itemId,
             name: line.name,
             itemType: line.itemType,

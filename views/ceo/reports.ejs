@@ -483,6 +483,7 @@
           <thead>
             <tr>
               <th>Date</th>
+              <th>Buyer</th>
               <th>Sale ID</th>
               <th>Line items</th>
               <th>Total</th>
@@ -492,6 +493,7 @@
             <% reportData.sales.sales.forEach(sale => { %>
               <tr>
                 <td><%= new Date(sale.createdAt).toLocaleString() %></td>
+                <td><%= sale.buyerName || '—' %></td>
                 <td><%= String(sale._id) %></td>
                 <td><%= sale.lines.length %></td>
                 <td>D <%= Number(sale.total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
@@ -506,6 +508,7 @@
           <thead>
             <tr>
               <th>Date</th>
+              <th>Buyer</th>
               <th>Sale ID</th>
               <th>Item ID</th>
               <th>Name</th>
@@ -519,6 +522,7 @@
             <% reportData.sales.lineRows.forEach(row => { %>
               <tr>
                 <td><%= new Date(row.saleAt).toLocaleString() %></td>
+                <td><%= row.buyerName || '—' %></td>
                 <td><%= String(row.saleId) %></td>
                 <td><%= row.itemId %></td>
                 <td><%= row.name %></td>
